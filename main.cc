@@ -1,11 +1,23 @@
 #include <fstream>
 #include <iostream>
 #include <unistd.h>
+#include <signal.h>
 using namespace std;
 
 string cpu_name;
 unsigned long long totalRam, lastUser, lastNice, lastSystem, lastIdle, realusedRam;
 const double divisor = 1048576;
+
+void sigint_treatment(int s)
+{
+    char op;
+    cout << " q to exit, any else key to resume: ";
+    cin >> op;
+    if(op == 'q')
+        exit(0);
+    else
+        return;
+}
 
 void init()
 {
@@ -27,6 +39,11 @@ void init()
     file.seekg(4);
     file >> lastUser >> lastNice >> lastSystem >> lastIdle;
     file.close();
+
+    struct sigaction sa;
+    sa.sa_flags = 0;
+    sa.sa_handler = &sigint_treatment;
+    sigaction(SIGINT, &sa, NULL);
 }
 
 double get_ram_usage()
@@ -84,7 +101,6 @@ double get_cpu_freq()
     ifstream file;
     file.open("/proc/cpuinfo");
     string useless;
-    useless.reserve(500);
     for(int i = 0; i < 7; ++i) getline(file,useless);
     file >> useless >> useless >> useless >> aux;
     freq += aux;
@@ -132,5 +148,6 @@ int main()
         cout << "[" << realusedRam/divisor << "/" << totalRam/divisor << "] GB" << endl << endl;
         
         cout << "Refreshing every " << time/1000000 << "s" << endl;
+        cout << "Ctrl+C to stop" << endl;
     }
 }
