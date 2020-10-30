@@ -7,27 +7,31 @@ using namespace std;
 string cpu_name;
 unsigned long long  lastUser, lastNice, lastSystem, lastIdle, totalRam;
 const double divisor = 1048576;
-double totalRamd, usedRamd, max_ram = 0, max_freq = 0, avg_ram = 0, avg_cpu = 0, avg_freq = 0, max_cpu;
+double totalRamd, usedRamd, max_ram = 0, max_freq = 0, max_cpu = 0, avg_ram = 0, avg_cpu = 0, avg_freq = 0;
 int counter = 0;
 
-void sigint_treatment(int s)
+void signal_treatment(int s)
 {
-    char op;
-    cout << " q to exit, any else key to resume: ";
-    cin >> op;
-    if(op == 'q') {
-        system("clear");
-        avg_cpu /= counter, avg_freq /= counter, avg_ram /= counter;
-        cout << "Average cpu usage: " << avg_cpu << " %" << endl;
-        cout << "Max cpu usage: " << max_cpu << " %" << endl;
-        cout << "Average cpu freq: " << avg_freq << " GHz" << endl;
-        cout << "Max cpu freq: " << max_freq << " GHz" << endl;
-        cout << "Average ram usage: " << avg_ram << " GB" << endl;
-        cout << "Max ram usage: " << max_ram << " GB" << endl;
-        exit(0);
+    if(s == SIGINT) {
+        char op;
+        cout << " q to exit, r to reset saved stats, any else key to resume: ";
+        cin >> op;
+        if(op == 'q') {
+            system("clear");
+            avg_cpu /= counter, avg_freq /= counter, avg_ram /= counter;
+            cout << "Average cpu usage: " << avg_cpu << " %" << endl;
+            cout << "Max cpu usage: " << max_cpu << " %" << endl;
+            cout << "Average cpu freq: " << avg_freq << " GHz" << endl;
+            cout << "Max cpu freq: " << max_freq << " GHz" << endl;
+            cout << "Average ram usage: " << avg_ram << " GB" << endl;
+            cout << "Max ram usage: " << max_ram << " GB" << endl;
+            exit(0);
+        }
+        else if(op == 'r')
+            max_ram = 0, max_freq = 0, avg_ram = 0, avg_ram = 0, avg_cpu = 0, max_cpu = 0;
+        else
+            return;
     }
-    else
-        return;
 }
 
 void init()
@@ -55,8 +59,9 @@ void init()
     struct sigaction sa;
     sigfillset(&sa.sa_mask);
     sa.sa_flags = 0;
-    sa.sa_handler = &sigint_treatment;
+    sa.sa_handler = &signal_treatment;
     sigaction(SIGINT, &sa, NULL);
+    sigaction(SIGALRM, &sa, NULL);
 }
 
 double get_ram_usage()
@@ -134,16 +139,16 @@ int main()
     system("clear");
     cout << "Refresh rate (s): ";
     cin >> time;
-    if(time < 0.5)
+    if(time < 1)
     {
-        cout << "ERROR: Refresh rate must be >= 0.5 to prevent bugs" << endl;
+        cout << "ERROR: Refresh rate must be an integer greater than 0" << endl;
         return 0;
     }
-    time *= 1000000;
     init();
+    usleep(100000);
     while(true)
     {
-        usleep(time);
+        alarm(time);
         double ram_usage = get_ram_usage(), cpu_usage = get_cpu_usage(), cpu_freq = get_cpu_freq();
         avg_ram += usedRamd, avg_cpu += cpu_usage, avg_freq += cpu_freq;
         max_cpu = max(max_cpu, cpu_usage), max_ram = max(max_ram, usedRamd), max_freq = max(cpu_freq, max_freq);
@@ -153,18 +158,28 @@ int main()
         cout << "CPU model: " << cpu_name << endl << endl;
         
         cout << "CPU usage:" << endl << "[";
-        for(int i = 0; i < int(cpu_usage); ++i) cout << "#";
-        for(int i = cpu_usage; i < 100; ++i) cout << " ";
+        for(int i = 0; i < cpu_usage; ++i)
+            cout << "#";
+        for(int i = 0; i < 100-cpu_usage; ++i)
+            cout << " ";
         cout << "] " << cpu_usage << "%" << endl;
         cout << "CPU frequency: " << cpu_freq << " GHz" << endl << endl;
         
         cout << "RAM usage:" << endl << "[";
-        for(int i = 0; i < int(ram_usage); ++i) cout << "#";
-        for(int i = ram_usage; i < 100; ++i) cout << " ";
+        for(int i = 0; i < ram_usage; ++i)
+            cout << "#";
+        for(int i = 0; i < 100-ram_usage; ++i)
+            cout << " ";
         cout << "] " << ram_usage << "%" << endl;
         cout << "[" << usedRamd << "/" << totalRamd << "] GB" << endl << endl;
         
-        cout << "Refreshing every " << time/1000000 << "s" << endl;
+        cout << "Refreshing every " << time << "s" << endl;
         cout << "Ctrl+C to stop" << endl;
+        
+        sigset_t mask;
+        sigfillset(&mask);
+        sigdelset(&mask, SIGALRM);
+        sigdelset(&mask, SIGINT);
+        sigsuspend(&mask);
     }
 }
