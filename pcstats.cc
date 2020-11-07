@@ -138,8 +138,8 @@ void pcstats::print_saved_stats()
     cpu.avg_usage /= counter, cpu.avg_freq /= counter, ram.avg_usage /= counter;
     cout << "Average cpu usage: " << cpu.avg_usage << " %" << endl;
     cout << "Max cpu usage: " << cpu.max_usage << " %" << endl;
-    cout << "Average cpu freq: " << cpu.avg_freq << " GHz" << endl;
-    cout << "Max cpu freq: " << cpu.max_freq << " GHz" << endl;
+    cout << "Average cpu frequency: " << cpu.avg_freq << " GHz" << endl;
+    cout << "Max cpu frequency: " << cpu.max_freq << " GHz" << endl;
     cout << "Average ram usage: " << ram.avg_usage << " GB" << endl;
     cout << "Max ram usage: " << ram.max_usage << " GB" << endl;
 }

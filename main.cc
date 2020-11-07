@@ -1,7 +1,4 @@
-#include <fstream>
-#include <iostream>
 #include <unistd.h>
-#include <signal.h>
 #include "pcstats.hh"
 using namespace std;
 
