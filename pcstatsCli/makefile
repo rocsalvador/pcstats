@@ -1,5 +1,5 @@
-main: main.o pcstats.o
-	g++ -o main main.o pcstats.o
+pcstats: main.o pcstats.o
+	g++ -o pcstats main.o pcstats.o
 	rm *.o
 
 pcstats.o: pcstats.cc
