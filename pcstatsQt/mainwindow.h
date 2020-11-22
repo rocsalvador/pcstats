@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QTimer>
 #include "pcstats.h"
 
 QT_BEGIN_NAMESPACE
@@ -20,7 +21,12 @@ private slots:
 
     void on_pushButton_clicked();
 
+    void timeout();
+
+    void on_spinBox_valueChanged(const QString &arg1);
+
 private:
     Ui::MainWindow *ui;
+    QTimer* timer;
 };
 #endif // MAINWINDOW_H

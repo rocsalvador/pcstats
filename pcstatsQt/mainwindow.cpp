@@ -8,10 +8,37 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    ui->progressBar->setValue(stats.get_cpu_usage());
-    ui->progressBar_2->setValue(stats.get_ram_usage());
-    ui->progressBar_3->setValue(stats.get_avg_cpu_usage());
-    ui->progressBar_4->setValue(stats.get_avg_ram_usage());
+
+    ui->progressBar_2->setRange(0, stats.getTotalRam());
+    ui->progressBar_4->setRange(0, stats.getTotalRam());
+
+    timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(timeout()));
+    timer->setInterval(1000);
+    timer->start();
+}
+
+void MainWindow::timeout() {
+    double ramUsage = stats.getRamUsage();
+    double cpuUsage = stats.getCpuUsage();
+    double cpuFreq = stats.getCpuFreq();
+
+    ui->progressBar->setValue(cpuUsage);
+    ui->progressBar_2->setValue(ramUsage);
+
+    QString usedRam = QString::number(ramUsage);
+    usedRam += "/";
+    usedRam += QString::number(stats.getTotalRam());
+    usedRam += " GB";
+    ui->label_5->setText(usedRam);
+
+    QString cpuFreqS = QString::number(cpuFreq);
+    cpuFreqS += " GHz";
+    ui->label_6->setText(cpuFreqS);
+
+    ui->progressBar_3->setValue(stats.getAvgCpuUsage());
+    ui->progressBar_4->setValue(stats.getAvgRamUsage());
+
 }
 
 MainWindow::~MainWindow()
@@ -21,8 +48,10 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_pushButton_clicked()
 {
-   ui->progressBar->setValue(stats.get_cpu_usage());
-   ui->progressBar_2->setValue(stats.get_ram_usage());
-   ui->progressBar_3->setValue(stats.get_avg_cpu_usage());
-   ui->progressBar_4->setValue(stats.get_avg_ram_usage());
+    stats.resetSavedStats();
+}
+
+void MainWindow::on_spinBox_valueChanged(const QString &refreshRate)
+{
+    timer->setInterval(refreshRate.toInt()*1000);
 }

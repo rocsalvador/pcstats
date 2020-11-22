@@ -20,12 +20,10 @@ pcstats::pcstats() {
     file >> cpu.lastUser >> cpu.lastNice >> cpu.lastSystem >> cpu.lastIdle;
     file.close();
 
-    reset_saved_stats();
-
-    counter = 0;
+    resetSavedStats();
 }
 
-double pcstats::get_ram_usage() {
+double pcstats::getRamUsage() {
     long long freeRam, usedRam, bufferRam, cachedtotalRam, cachedRam, SRecalaimable, Shmem, realusedRam;
     string unused;
     ifstream file;
@@ -43,14 +41,22 @@ double pcstats::get_ram_usage() {
         getline(file, unused);
     file >> unused >> SRecalaimable >> unused;
     file.close();
+
+    double usedRamD;
     usedRam = ram.totalRam - freeRam;
     cachedtotalRam = cachedRam + SRecalaimable - Shmem;
     realusedRam = usedRam - (bufferRam + cachedtotalRam);
-    ram.usedRamd = realusedRam/divisor;
-    return (realusedRam/double(ram.totalRam))*100;
+    usedRamD = realusedRam/divisor;
+
+    ram.maxUsage = max(usedRamD, ram.maxUsage);
+
+    ram.acumulatedUsage += usedRamD;
+    ++ram.counter;
+
+    return usedRamD;
 }
 
-double pcstats::get_cpu_usage() {
+double pcstats::getCpuUsage() {
     unsigned long long User, Nice, System, Idle;
     ifstream file;
     file.open("/proc/stat");
@@ -70,12 +76,17 @@ double pcstats::get_cpu_usage() {
     cpu.lastSystem = System;
     cpu.lastIdle = Idle;
 
+    cpu.maxUsage = max(result, cpu.maxUsage);
+
+    cpu.acumulatedUsage += result;
+    ++cpu.usageCounter;
+
     return result;
 }
 
-double pcstats::get_cpu_freq() {
-    double freq = 0, aux;
+double pcstats::getCpuFreq() {
     ifstream file;
+    double freq = 0, aux;
     file.open("/proc/cpuinfo");
     string useless;
     for(int i = 0; i < 7; ++i)
@@ -88,18 +99,32 @@ double pcstats::get_cpu_freq() {
         file >> useless >> useless >> useless >> aux;
         freq += aux;
     }
+    freq /= 8000;
+
+    cpu.maxFreq = max(freq, cpu.maxFreq);
+
+    cpu.acumulatedFreq += freq;
+    ++cpu.freqCounter;
+
     file.close();
-    return freq/8000;
+
+    return freq;
 }
 
-void pcstats::reset_saved_stats() {
-    ram.max_usage = 0, cpu.max_freq = 0, ram.avg_usage = 0, cpu.avg_usage = 0, cpu.avg_usage = 0, cpu.max_usage = 0;
+void pcstats::resetSavedStats() {
+    ram.maxUsage = 0, cpu.maxUsage = 0, cpu.maxFreq = 0;
+    ram.acumulatedUsage = 0, cpu.acumulatedUsage = 0, cpu.acumulatedFreq = 0;
+    cpu.freqCounter = 0, cpu.usageCounter = 0, ram.counter = 0;
 }
 
-double pcstats::get_avg_cpu_usage() {
-    return cpu.avg_usage;
+double pcstats::getAvgCpuUsage() {
+    return cpu.acumulatedUsage/cpu.usageCounter;
 }
 
-double pcstats::get_avg_ram_usage() {
-    return ram.avg_usage;
+double pcstats::getAvgRamUsage() {
+    return ram.acumulatedUsage/ram.counter;
+}
+
+double pcstats::getTotalRam() {
+    return ram.totalRamd;
 }

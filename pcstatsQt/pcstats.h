@@ -3,7 +3,6 @@
 
 #include <fstream>
 #include <iostream>
-#include <signal.h>
 using namespace std;
 
 class pcstats {
@@ -11,33 +10,40 @@ private:
     struct cpu_info {
         string name;
         unsigned long long  lastUser, lastNice, lastSystem, lastIdle;
-        double max_freq, max_usage, avg_usage, avg_freq;
+        double maxFreq, maxUsage, acumulatedUsage, acumulatedFreq;
+        int freqCounter, usageCounter;
     };
 
     struct ram_info {
         unsigned long long totalRam;
-        double totalRamd, usedRamd, avg_usage, max_usage;
+        double totalRamd, acumulatedUsage, maxUsage;
+        int counter;
     };
 
     cpu_info cpu;
     ram_info ram;
     const double divisor = 1048576;
-    int counter;
 
 public:
     pcstats();
 
-    void reset_saved_stats();
+    void resetSavedStats();
 
-    double get_ram_usage();
+    // Returns: Ram usage in GB
+    double getRamUsage();
 
-    double get_cpu_usage();
+    // Returns the total Ram in the system
+    double getTotalRam();
 
-    double get_avg_cpu_usage();
+    double getCpuUsage();
 
-    double get_avg_ram_usage();
+    double getCpuFreq();
 
-    double get_cpu_freq();
+    double getAvgCpuUsage();
+
+    double getAvgFreq();
+
+    double getAvgRamUsage();
 };
 
 #endif // PCSTATS_H
