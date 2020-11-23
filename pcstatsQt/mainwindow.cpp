@@ -10,7 +10,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     ui->progressBar_2->setRange(0, stats.getTotalRam());
-    ui->progressBar_4->setRange(0, stats.getTotalRam());
 
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(timeout()));
@@ -19,26 +18,26 @@ MainWindow::MainWindow(QWidget *parent)
 }
 
 void MainWindow::timeout() {
-    double ramUsage = stats.getRamUsage();
-    double cpuUsage = stats.getCpuUsage();
-    double cpuFreq = stats.getCpuFreq();
+    ui->progressBar->setValue(stats.getCpuUsage());
+    ui->progressBar_2->setValue(stats.getRamUsage());
 
-    ui->progressBar->setValue(cpuUsage);
-    ui->progressBar_2->setValue(ramUsage);
-
-    QString usedRam = QString::number(ramUsage);
+    QString usedRam = QString::number(stats.getRamUsage());
     usedRam += "/";
     usedRam += QString::number(stats.getTotalRam());
     usedRam += " GB";
     ui->label_5->setText(usedRam);
 
-    QString cpuFreqS = QString::number(cpuFreq);
+    QString cpuFreqS = QString::number(stats.getCpuFreq());
     cpuFreqS += " GHz";
     ui->label_6->setText(cpuFreqS);
 
-    ui->progressBar_3->setValue(stats.getAvgCpuUsage());
-    ui->progressBar_4->setValue(stats.getAvgRamUsage());
+    ui->label->setText("Max. Cpu usage: " + QString::number(stats.getMaxCpuUsage()) + " %");
+    ui->label_2->setText("Max. Cpu freq.: " + QString::number(stats.getMaxCpuFreq()) + " Hz");
+    ui->label_7->setText("Max. Ram usage: " + QString::number(stats.getMaxRamUsage()) + " GB");
 
+    ui->label_8->setText("Avg. Cpu usage: " + QString::number(stats.getAvgCpuUsage()) + " %");
+    ui->label_9->setText("Avg. Cpu freq.: " + QString::number(stats.getAvgCpuFreq()) + " Hz");
+    ui->label_10->setText("Avg. Ram usage: " + QString::number(stats.getAvgRamUsage()) + " GB");
 }
 
 MainWindow::~MainWindow()

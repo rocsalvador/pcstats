@@ -121,10 +121,26 @@ double pcstats::getAvgCpuUsage() {
     return cpu.acumulatedUsage/cpu.usageCounter;
 }
 
+double pcstats::getAvgCpuFreq() {
+    return cpu.acumulatedFreq/cpu.freqCounter;
+}
+
 double pcstats::getAvgRamUsage() {
     return ram.acumulatedUsage/ram.counter;
 }
 
 double pcstats::getTotalRam() {
     return ram.totalRamd;
+}
+
+double pcstats::getMaxCpuUsage() {
+    return cpu.maxUsage;
+}
+
+double pcstats::getMaxCpuFreq() {
+    return cpu.maxFreq;
+}
+
+double pcstats::getMaxRamUsage() {
+    return ram.maxUsage;
 }

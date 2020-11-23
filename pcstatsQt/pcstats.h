@@ -41,9 +41,15 @@ public:
 
     double getAvgCpuUsage();
 
-    double getAvgFreq();
+    double getAvgCpuFreq();
 
     double getAvgRamUsage();
+
+    double getMaxCpuUsage();
+
+    double getMaxCpuFreq();
+
+    double getMaxRamUsage();
 };
 
 #endif // PCSTATS_H
