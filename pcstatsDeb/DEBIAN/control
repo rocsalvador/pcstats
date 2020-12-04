@@ -1,9 +1,0 @@
-Package: pcstats
-Version: 2.1
-Section: custom
-Priority: optional
-Architecture: all
-Essential: no
-Installed-Size: 1049
-Maintainer: user
-Description: Monitor CPU and RAM stats
