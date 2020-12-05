@@ -4,8 +4,12 @@ pcstats::pcstats()
 {
     ifstream file;
     file.open("/proc/cpuinfo");
-    for(int i = 0; i < 5; ++i)
-    {
+    if(not file.is_open()) {
+        cout << "ERROR: Unable to open /proc/cpu file" << endl;
+        exit(1);
+    }
+    
+    for(int i = 0; i < 5; ++i) {
         getline(file,cpu.name);
     }
     cpu.name.erase(0,13);
@@ -23,16 +27,11 @@ pcstats::pcstats()
     file.close();
 
     reset_saved_stats();
-
-    counter = 0;
 }
 
-void pcstats::print_stats()
-{
+void pcstats::print_stats() {
     double ram_usage = get_ram_usage(), cpu_usage = get_cpu_usage(), cpu_freq = get_cpu_freq();
-    ram.avg_usage += ram.usedRamd, cpu.avg_usage += cpu_usage, cpu.avg_freq += cpu_freq;
-    cpu.max_usage = max(cpu.max_usage, cpu_usage), ram.max_usage = max(ram.max_usage, ram.usedRamd), cpu.max_freq = max(cpu_freq, cpu.max_freq);
-
+    
     system("clear");
     cout << "CPU model: " << cpu.name << endl << endl;
     
@@ -54,37 +53,51 @@ void pcstats::print_stats()
     
     cout << "Refreshing every " << time << "s" << endl;
     cout << "Ctrl+C to stop" << endl;
-    ++counter;
 }
 
-double pcstats::get_ram_usage()
-{
-    long long freeRam, usedRam, bufferRam, cachedtotalRam, cachedRam, SRecalaimable, Shmem, realusedRam;
-    string unused;
+double pcstats::get_ram_usage() {
     ifstream file;
     file.open("/proc/meminfo");
-    getline(file, unused);
-    file >> unused >> freeRam >> unused;
-    for(int i = 0; i < 2; ++i)
-        getline(file, unused);
-    file >> unused >> bufferRam >> unused >> 
-        unused >> cachedRam >> unused;
-    for(int i = 0; i < 16; ++i)
-        getline(file, unused);
-    file >> unused >> Shmem >> unused;
-    for(int i = 0; i < 3; ++i)
-        getline(file, unused);
-    file >> unused >> SRecalaimable >> unused;
+    if(not file.is_open()) {
+        cout << "ERROR: Unable to open /proc/meminfo file" << endl;
+        exit(1);
+    }
+    
+    long long freeRam, usedRam, bufferRam, cachedtotalRam, cachedRam, SRecalaimable, Shmem, realusedRam;
+    string unused;
+    double ramUsage;
+
+    while(unused != "MemFree:")
+        file >> unused;
+    file >> freeRam;
+    while(unused != "Buffers:")
+        file >> unused;
+    file >> bufferRam; 
+    while(unused != "Cached:")
+        file >> unused;
+    file >> cachedRam;
+    while(unused != "Shmem:")
+        file >> unused;
+    file >> Shmem;
+    while(unused != "SReclaimable:")
+        file >> unused;
+    file >> SRecalaimable;
     file.close();
+    
     usedRam = ram.totalRam - freeRam;
     cachedtotalRam = cachedRam + SRecalaimable - Shmem;
     realusedRam = usedRam - (bufferRam + cachedtotalRam);
     ram.usedRamd = realusedRam/divisor;
-    return (realusedRam/double(ram.totalRam))*100;
+    ramUsage = (realusedRam/double(ram.totalRam))*100;
+    
+    ram.avgUsage += ram.usedRamd;
+    ++ram.usageCounter;
+    ram.maxUsage = max(ram.maxUsage, ram.usedRamd);
+    
+    return ramUsage;
 }
 
-double pcstats::get_cpu_usage()
-{
+double pcstats::get_cpu_usage() {
     unsigned long long User, Nice, System, Idle;
     ifstream file;
     file.open("/proc/stat");
@@ -92,54 +105,70 @@ double pcstats::get_cpu_usage()
     file >> User >> Nice >> System >> Idle;
     file.close();
     
-    double result;
+    double cpuUsage;
     int total = (User - cpu.lastUser) + (Nice - cpu.lastNice) + (System - cpu.lastSystem);
-    result = total;
+    cpuUsage = total;
     total += (Idle - cpu.lastIdle);
-    result /= total;
-    result *= 100;
+    cpuUsage /= total;
+    cpuUsage *= 100;
     
     cpu.lastUser = User;
     cpu.lastNice = Nice;
     cpu.lastSystem = System;
     cpu.lastIdle = Idle;
     
-    return result;
+    cpu.avgUsage += cpuUsage;
+    ++cpu.usageCounter;
+    cpu.maxUsage = max(cpu.maxUsage, cpuUsage);
+    
+    return cpuUsage;
 }
 
-double pcstats::get_cpu_freq()
-{
-    double freq = 0, aux;
+double pcstats::get_cpu_freq() {
     ifstream file;
     file.open("/proc/cpuinfo");
-    string useless;
-    for(int i = 0; i < 7; ++i) getline(file,useless);
-    file >> useless >> useless >> useless >> aux;
-    freq += aux;
-    for(int i = 0; i < 7; ++i)
-    {
-        for(int i = 0; i < 27; ++i) 
-            getline(file,useless);
-        file >> useless >> useless >> useless >> aux;
-        freq += aux;
+    if(not file.is_open()) {
+        cout << "ERROR: Unable to open /proc/cpuinfo file" << endl;
+        exit(1);
     }
+    
+    double freq = 0, coreFreq;
+    int nProc;
+    string aux;
+    while(file >> aux) {
+        if(aux == "cpu") {
+            file >> aux;
+            if(aux == "MHz") {
+                file >> aux >> coreFreq;
+                freq += coreFreq;
+                ++nProc;
+            }
+        }
+    }
+    freq /= (nProc*1000);
+    
+    cpu.avgFreq += freq;
+    ++cpu.freqCounter;
+    cpu.maxFreq = max(cpu.maxFreq, freq);
+    
     file.close();
-    return freq/8000;
+    return freq;
 }
 
-void pcstats::reset_saved_stats()
-{
-    ram.max_usage = 0, cpu.max_freq = 0, ram.avg_usage = 0, cpu.avg_usage = 0, cpu.avg_usage = 0, cpu.max_usage = 0;
+void pcstats::reset_saved_stats() {
+    cpu.maxFreq = 0, cpu.avgUsage = 0, cpu.avgUsage = 0, cpu.maxUsage = 0;
+    ram.avgUsage = 0, ram.maxUsage = 0;
+    ram.usageCounter = 0;
+    cpu.usageCounter = 0, cpu.freqCounter = 0;
 }
 
-void pcstats::print_saved_stats()
-{
+void pcstats::print_saved_stats() {
     system("clear");
-    cpu.avg_usage /= counter, cpu.avg_freq /= counter, ram.avg_usage /= counter;
-    cout << "Average cpu usage: " << cpu.avg_usage << " %" << endl;
-    cout << "Max cpu usage: " << cpu.max_usage << " %" << endl;
-    cout << "Average cpu frequency: " << cpu.avg_freq << " GHz" << endl;
-    cout << "Max cpu frequency: " << cpu.max_freq << " GHz" << endl;
-    cout << "Average ram usage: " << ram.avg_usage << " GB" << endl;
-    cout << "Max ram usage: " << ram.max_usage << " GB" << endl;
+    cpu.avgUsage /= cpu.usageCounter, cpu.avgFreq /= cpu.freqCounter, ram.avgUsage /= ram.usageCounter;
+    cout << "Average cpu usage: " << cpu.avgUsage << " %" << endl;
+    cout << "Max cpu usage: " << cpu.maxUsage << " %" << endl;
+    cout << "Average cpu frequency: " << cpu.avgFreq << " GHz" << endl;
+    cout << "Max cpu frequency: " << cpu.maxFreq << " GHz" << endl;
+    cout << "Average ram usage: " << ram.avgUsage << " GB" << endl;
+    cout << "Max ram usage: " << ram.maxUsage << " GB" << endl;
 }

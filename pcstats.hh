@@ -8,18 +8,19 @@ private:
     struct cpu_info {
         string name;
         unsigned long long  lastUser, lastNice, lastSystem, lastIdle;
-        double max_freq, max_usage, avg_usage, avg_freq;
+        int usageCounter, freqCounter;
+        double maxFreq, maxUsage, avgUsage, avgFreq;
     };
 
     struct ram_info {
         unsigned long long totalRam;
-        double totalRamd, usedRamd, avg_usage, max_usage;
+        int usageCounter;
+        double totalRamd, usedRamd, avgUsage, maxUsage;
     };
 
     cpu_info cpu;
     ram_info ram;
     const double divisor = 1048576;
-    int counter;
 
 public:
     pcstats();

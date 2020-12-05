@@ -4,8 +4,7 @@ using namespace std;
 
 pcstats stats;
 
-void signal_treatment(int s)
-{
+void signal_treatment(int s) {
     if(s == SIGINT) {
         char op;
         cout << " q to exit, r to reset saved stats, any else key to resume: ";
@@ -21,8 +20,7 @@ void signal_treatment(int s)
     }
 }
 
-void init_signals()
-{
+void init_signals() {
     struct sigaction sa;
     sigfillset(&sa.sa_mask);
     sa.sa_flags = 0;
@@ -31,23 +29,18 @@ void init_signals()
     sigaction(SIGALRM, &sa, NULL);
 }
 
-int main()
-{
-    init_signals();
-
+int main() {
     double time;
     system("clear");
     cout << "Refresh rate (s): ";
     cin >> time;
-    if(time < 1)
-    {
+    if(time < 1) {
         cout << "ERROR: Refresh rate must be an integer greater than 0" << endl;
         return 0;
     }
-
+    init_signals();
     usleep(100000);
-    while(true)
-    {
+    while(true) {
         alarm(time);
 
         stats.print_stats();
