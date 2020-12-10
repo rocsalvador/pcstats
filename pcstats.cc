@@ -16,12 +16,20 @@ pcstats::pcstats()
     file.close();
 
     file.open("/proc/meminfo");
+    if(not file.is_open()) {
+        cout << "ERROR: Unable to open /proc/meminfo file" << endl;
+        exit(1);
+    }
     file.seekg(9);
     file >> ram.totalRam;
     file.close();
     ram.totalRamd = ram.totalRam/divisor;
     
     file.open("/proc/stat");
+    if(not file.is_open()) {
+        cout << "ERROR: Unable to open /proc/stat file" << endl;
+        exit(1);
+    }
     file.seekg(4);
     file >> cpu.lastUser >> cpu.lastNice >> cpu.lastSystem >> cpu.lastIdle;
     file.close();
@@ -67,20 +75,15 @@ double pcstats::get_ram_usage() {
     string unused;
     double ramUsage;
 
-    while(unused != "MemFree:")
-        file >> unused;
+    while(file >> unused and unused != "MemFree:");
     file >> freeRam;
-    while(unused != "Buffers:")
-        file >> unused;
+    while(file >> unused and unused != "Buffers:");
     file >> bufferRam; 
-    while(unused != "Cached:")
-        file >> unused;
+    while(file >> unused and unused != "Cached:");
     file >> cachedRam;
-    while(unused != "Shmem:")
-        file >> unused;
+    while(file >> unused and unused != "Shmem:");
     file >> Shmem;
-    while(unused != "SReclaimable:")
-        file >> unused;
+    while(file >> unused and unused != "SReclaimable:");
     file >> SRecalaimable;
     file.close();
     
@@ -101,6 +104,11 @@ double pcstats::get_cpu_usage() {
     unsigned long long User, Nice, System, Idle;
     ifstream file;
     file.open("/proc/stat");
+    if(not file.is_open()) {
+        cout << "ERROR: Unable to open /proc/stat file" << endl;
+        exit(1);
+    }
+    
     file.seekg(4);
     file >> User >> Nice >> System >> Idle;
     file.close();

@@ -9,14 +9,15 @@ void signal_treatment(int s) {
         char op;
         cout << " q to exit, r to reset saved stats, any else key to resume: ";
         cin >> op;
-        if(op == 'q') {
-            stats.print_saved_stats();
-            exit(0);
+        switch(op) {
+            case 'q':
+                stats.print_saved_stats();
+                exit(0);
+            case 'r':
+                stats.reset_saved_stats();
+            default:
+                return;
         }
-        else if(op == 'r')
-           stats.reset_saved_stats();
-        else
-            return;
     }
 }
 
