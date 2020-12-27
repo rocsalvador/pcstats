@@ -72,18 +72,18 @@ double pcstats::get_ram_usage() {
     }
     
     long long freeRam, usedRam, bufferRam, cachedtotalRam, cachedRam, SRecalaimable, Shmem, realusedRam;
-    string unused;
+    string aux;
     double ramUsage;
 
-    while(file >> unused and unused != "MemFree:");
+    while(file >> aux and aux != "MemFree:");
     file >> freeRam;
-    while(file >> unused and unused != "Buffers:");
+    while(file >> aux and aux != "Buffers:");
     file >> bufferRam; 
-    while(file >> unused and unused != "Cached:");
+    while(file >> aux and aux != "Cached:");
     file >> cachedRam;
-    while(file >> unused and unused != "Shmem:");
+    while(file >> aux and aux != "Shmem:");
     file >> Shmem;
-    while(file >> unused and unused != "SReclaimable:");
+    while(file >> aux and aux != "SReclaimable:");
     file >> SRecalaimable;
     file.close();
     
