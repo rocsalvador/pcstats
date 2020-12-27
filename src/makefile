@@ -9,4 +9,4 @@ main.o: main.cc
 	g++ -c main.cc
 
 clean:
-	rm main
+	rm pcstats

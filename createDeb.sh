@@ -1,5 +1,6 @@
+cd src
 make
-cp pcstats pcstatsDeb/usr/bin/
-rm pcstats
+mv pcstats ../pcstatsDeb/usr/bin/
+cd ..
 dpkg --build pcstatsDeb/
 mv pcstatsDeb.deb pcstats.deb
