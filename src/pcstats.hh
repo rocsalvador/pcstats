@@ -1,5 +1,6 @@
 #include <fstream>
 #include <iostream>
+#include <vector>
 #include <signal.h>
 using namespace std;
 
@@ -7,7 +8,14 @@ class pcstats {
 private:
     struct cpu_info {
         string name;
+        int cores;
+        
+        vector<double> coresFreq;
+        
+        vector<double> coresUsage;
+        vector<unsigned long> coresLast;
         unsigned long long  lastUser, lastNice, lastSystem, lastIdle;
+        
         int usageCounter, freqCounter;
         double maxFreq, maxUsage, avgUsage, avgFreq;
     };
@@ -21,6 +29,13 @@ private:
     cpu_info cpu;
     ram_info ram;
     const double divisor = 1048576;
+    
+
+    double get_cpu_freq();
+    
+    double get_ram_usage();
+
+    double get_cpu_usage();
 
 public:
     pcstats();
@@ -30,10 +45,4 @@ public:
     void reset_saved_stats();
 
     void print_saved_stats();
-
-    double get_ram_usage();
-
-    double get_cpu_usage();
-
-    double get_cpu_freq();
 };
