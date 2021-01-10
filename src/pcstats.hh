@@ -18,6 +18,9 @@ private:
         
         int usageCounter, freqCounter;
         double maxFreq, maxUsage, avgUsage, avgFreq;
+        
+        string cpuTempFile;
+        vector<pair<string,double>> coreTemps;
     };
 
     struct ram_info {
@@ -36,6 +39,8 @@ private:
     double get_ram_usage();
 
     double get_cpu_usage();
+    
+    void get_cpu_temp();
 
 public:
     pcstats();

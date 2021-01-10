@@ -45,6 +45,8 @@ int main() {
         alarm(time);
 
         stats.print_stats();
+        cout << "Refreshing every " << time << "s" << endl;
+        cout << "Ctrl+C to stop" << endl;
         
         sigset_t mask;
         sigfillset(&mask);

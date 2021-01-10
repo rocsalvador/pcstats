@@ -19,6 +19,7 @@ pcstats::pcstats()
             if(aux == "name") {
                 first = false;
                 file >> aux;
+                file.seekg(1,ios_base::cur);
                 getline(file,cpu.name);
             }
         }
@@ -51,14 +52,52 @@ pcstats::pcstats()
     }
     file.close();
     
+    string path = "/sys/class/hwmon/hwmon0/name";
+    bool found = false;
+    char i = '0';
+    file.open(path);
+    while(file.is_open() and not found) {
+        file >> aux;
+        cout << path << endl;
+        found = (aux == "coretemp");
+        file.close();
+        i += 1;
+        path[22] = i;
+        file.open(path);
+    }
+    file.close();
+    if(found) {
+        --i;
+        path[22] = i;
+        cpu.cpuTempFile = path.substr(0,23);
+        path = cpu.cpuTempFile;
+        path.append("/temp1_label");
+        cout << cpu.cpuTempFile << endl;
+        i = '1';
+        file.open(path);
+        while(file.is_open()) {
+            getline(file,aux);
+            cpu.coreTemps.push_back({aux,-1});
+            file.close();
+            ++i;
+            path[28] = i;
+            file.open(path);
+        }
+    }
+    
     reset_saved_stats();
 }
 
 void pcstats::print_stats() {
     double ram_usage = get_ram_usage(), cpu_usage = get_cpu_usage(), cpu_freq = get_cpu_freq();
+    get_cpu_temp();
     
     system("clear");
     cout << "CPU model: " << cpu.name << endl << endl;
+    
+    cout << "CPU temp:" << endl;
+    for(int i = 0; i < cpu.coreTemps.size(); ++i) cout << cpu.coreTemps[i].first <<  ": " << cpu.coreTemps[i].second << "ºC" << endl;
+    cout << endl;
     
     cout << "CPU usage:" << endl << "CPU  [";
     for(int i = 0; i < int(cpu_usage); ++i) cout << "#";
@@ -82,9 +121,6 @@ void pcstats::print_stats() {
     for(int i = 0; i < 100-int(ram_usage); ++i) cout << " ";
     cout << "] " << ram_usage << "%" << endl;
     cout << "[" << ram.usedRamd << "/" << ram.totalRamd << "] GB" << endl << endl;
-    
-    cout << "Refreshing every " << time << "s" << endl;
-    cout << "Ctrl+C to stop" << endl;
 }
 
 double pcstats::get_ram_usage() {
@@ -201,6 +237,23 @@ double pcstats::get_cpu_freq() {
     
     file.close();
     return freq;
+}
+
+void pcstats::get_cpu_temp() {
+    ifstream file;
+    double temp;
+    string path = cpu.cpuTempFile;
+    path.append("/temp1_input");
+    char c = '1';
+    file.open(path);
+    for(int i = 0; i < cpu.coreTemps.size(); ++i) {
+        file >> temp;
+        cpu.coreTemps[i].second = temp/1000;
+        file.close();
+        ++c;
+        path[28] = c;
+        file.open(path);
+    }
 }
 
 void pcstats::reset_saved_stats() {
