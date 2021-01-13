@@ -6,7 +6,7 @@
 void signal_treatment(int s) {
     if(s == SIGINT) {
         char c;
-        cout << " q to quit, any else key to exit: ";
+        cout << " q to quit, any else key to resume: ";
         cin >> c;
         if(c == 'q') exit(0);
     }
