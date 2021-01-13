@@ -1,7 +1,9 @@
+#ifndef PCSTATS_HH
+#define PCSTATS_HH
+
 #include <fstream>
 #include <iostream>
 #include <vector>
-#include <signal.h>
 using namespace std;
 
 class pcstats {
@@ -66,3 +68,5 @@ public:
 
     void print_saved_stats();
 };
+
+#endif

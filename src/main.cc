@@ -1,6 +1,6 @@
 #include <unistd.h>
+#include <signal.h>
 #include "pcstats.hh"
-using namespace std;
 
 
 void signal_treatment(int s) {
