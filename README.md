@@ -11,7 +11,7 @@ $ sudo dpkg -i pcstats.deb
 ### Build from source
 Clone the repository and open a terminal in the src folder and run ```make```
 
-Make sure that you have installed ```g++``` and ```make``` in your machine
+Make sure that you have ```g++``` and ```make``` installed in your machine
 ## Usage
 ```bash
 pcstats [OPTIONS]
