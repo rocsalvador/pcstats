@@ -253,14 +253,3 @@ void pcstats::reset_saved_stats() {
     ram.usageCounter = 0;
     cpu.usageCounter = 0, cpu.freqCounter = 0;
 }
-
-void pcstats::print_saved_stats() {
-    system("clear");
-    cpu.avgUsage /= cpu.usageCounter, cpu.avgFreq /= cpu.freqCounter, ram.avgUsage /= ram.usageCounter;
-    cout << "Average cpu usage: " << cpu.avgUsage << " %" << endl;
-    cout << "Max cpu usage: " << cpu.maxUsage << " %" << endl;
-    cout << "Average cpu frequency: " << cpu.avgFreq << " MHz" << endl;
-    cout << "Max cpu frequency: " << cpu.maxFreq << " MHz" << endl;
-    cout << "Average ram usage: " << ram.avgUsage << " GB" << endl;
-    cout << "Max ram usage: " << ram.maxUsage << " GB" << endl;
-}

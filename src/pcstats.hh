@@ -65,8 +65,6 @@ public:
     int cpu_sensors() const;
     
     void reset_saved_stats();
-
-    void print_saved_stats();
 };
 
 #endif
