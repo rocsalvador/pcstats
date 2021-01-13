@@ -58,7 +58,6 @@ pcstats::pcstats()
     file.open(path);
     while(file.is_open() and not found) {
         file >> aux;
-        cout << path << endl;
         found = (aux == "coretemp");
         file.close();
         i += 1;
@@ -69,10 +68,9 @@ pcstats::pcstats()
     if(found) {
         --i;
         path[22] = i;
-        cpu.cpuTempFile = path.substr(0,23);
-        path = cpu.cpuTempFile;
+        cpu.cpuTempFolder = path.substr(0,23);
+        path = cpu.cpuTempFolder;
         path.append("/temp1_label");
-        cout << cpu.cpuTempFile << endl;
         i = '1';
         file.open(path);
         while(file.is_open()) {
@@ -88,42 +86,7 @@ pcstats::pcstats()
     reset_saved_stats();
 }
 
-void pcstats::print_stats() {
-    double ram_usage = get_ram_usage(), cpu_usage = get_cpu_usage(), cpu_freq = get_cpu_freq();
-    get_cpu_temp();
-    
-    system("clear");
-    cout << "CPU model: " << cpu.name << endl << endl;
-    
-    cout << "CPU temp:" << endl;
-    for(int i = 0; i < cpu.coreTemps.size(); ++i) cout << cpu.coreTemps[i].first <<  ": " << cpu.coreTemps[i].second << "ºC" << endl;
-    cout << endl;
-    
-    cout << "CPU usage:" << endl << "CPU  [";
-    for(int i = 0; i < int(cpu_usage); ++i) cout << "#";
-    for(int i = 0; i < 100-int(cpu_usage); ++i) cout << " ";
-    cout << "] " << cpu_usage << "%" << endl;
-    
-    for(int i = 0; i < cpu.cores; ++i) {
-        cout << "CPU" << i << " [";
-        for(int j = 0; j < int(cpu.coresUsage[i]); ++j) cout << "#";
-        for(int j = 0; j < 100-int(cpu.coresUsage[i]); ++j) cout << " ";
-        cout << "] " << cpu.coresUsage[i] << "%" << endl;
-    }
-    cout << endl;
-    
-    cout << "CPU frequency: " << cpu_freq << " MHz" << endl;
-    for(int i = 0; i < cpu.cores; ++i) cout << "CPU" << i << " frequency: " << cpu.coresFreq[i] << " MHz" << endl;
-    cout << endl;
-    
-    cout << "RAM usage:" << endl << "[";
-    for(int i = 0; i < int(ram_usage); ++i) cout << "#";
-    for(int i = 0; i < 100-int(ram_usage); ++i) cout << " ";
-    cout << "] " << ram_usage << "%" << endl;
-    cout << "[" << ram.usedRamd << "/" << ram.totalRamd << "] GB" << endl << endl;
-}
-
-double pcstats::get_ram_usage() {
+void pcstats::update_ram_usage() {
     ifstream file;
     file.open("/proc/meminfo");
     if(not file.is_open()) {
@@ -133,7 +96,6 @@ double pcstats::get_ram_usage() {
     
     long long freeRam, usedRam, bufferRam, cachedtotalRam, cachedRam, SRecalaimable, Shmem, realusedRam;
     string aux;
-    double ramUsage;
 
     while(file >> aux and aux != "MemFree:");
     file >> freeRam;
@@ -151,16 +113,14 @@ double pcstats::get_ram_usage() {
     cachedtotalRam = cachedRam + SRecalaimable - Shmem;
     realusedRam = usedRam - (bufferRam + cachedtotalRam);
     ram.usedRamd = realusedRam/divisor;
-    ramUsage = (realusedRam/double(ram.totalRam))*100;
+    ram.ramUsage = (realusedRam/double(ram.totalRam))*100;
     
     ram.avgUsage += ram.usedRamd;
     ++ram.usageCounter;
     ram.maxUsage = max(ram.maxUsage, ram.usedRamd);
-    
-    return ramUsage;
 }
 
-double pcstats::get_cpu_usage() {
+void pcstats::update_cpu_usage() {
     unsigned long long User, Nice, System, Idle;
     string aux;
     ifstream file;
@@ -172,21 +132,20 @@ double pcstats::get_cpu_usage() {
     
     file >> aux >> User >> Nice >> System >> Idle;
     
-    double cpuUsage;
     int total = (User - cpu.lastUser) + (Nice - cpu.lastNice) + (System - cpu.lastSystem);
-    cpuUsage = total;
+    cpu.cpuUsage = total;
     total += (Idle - cpu.lastIdle);
-    cpuUsage /= total;
-    cpuUsage *= 100;
+    cpu.cpuUsage /= total;
+    cpu.cpuUsage *= 100;
     
     cpu.lastUser = User;
     cpu.lastNice = Nice;
     cpu.lastSystem = System;
     cpu.lastIdle = Idle;
     
-    cpu.avgUsage += cpuUsage;
+    cpu.avgUsage += cpu.cpuUsage;
     ++cpu.usageCounter;
-    cpu.maxUsage = max(cpu.maxUsage, cpuUsage);
+    cpu.maxUsage = max(cpu.maxUsage, cpu.cpuUsage);
     
     for(int i = 0; i < cpu.cores; ++i) {
         for(int j = 0; j < 7; ++j) file >> aux;
@@ -203,11 +162,9 @@ double pcstats::get_cpu_usage() {
         cpu.coresLast[i*4+3] = Idle;
     }
     file.close();
-    
-    return cpuUsage;
 }
 
-double pcstats::get_cpu_freq() {
+void pcstats::update_cpu_freq() {
     ifstream file;
     file.open("/proc/cpuinfo");
     if(not file.is_open()) {
@@ -215,7 +172,8 @@ double pcstats::get_cpu_freq() {
         exit(1);
     }
     
-    double freq = 0, coreFreq;
+    double coreFreq;
+    cpu.cpuFreq = 0;
     int i = 0;
     string aux;
     while(file >> aux) {
@@ -223,26 +181,25 @@ double pcstats::get_cpu_freq() {
             file >> aux;
             if(aux == "MHz") {
                 file >> aux >> coreFreq;
-                freq += coreFreq;
+                cpu.cpuFreq += coreFreq;
                 cpu.coresFreq[i] = coreFreq;
                 ++i;
             }
         }
     }
-    freq /= cpu.cores;
+    cpu.cpuFreq /= cpu.cores;
     
-    cpu.avgFreq += freq;
+    cpu.avgFreq += cpu.cpuFreq;
     ++cpu.freqCounter;
-    cpu.maxFreq = max(cpu.maxFreq, freq);
+    cpu.maxFreq = max(cpu.maxFreq, cpu.cpuFreq);
     
     file.close();
-    return freq;
 }
 
-void pcstats::get_cpu_temp() {
+void pcstats::update_cpu_temp() {
     ifstream file;
     double temp;
-    string path = cpu.cpuTempFile;
+    string path = cpu.cpuTempFolder;
     path.append("/temp1_input");
     char c = '1';
     file.open(path);
@@ -254,6 +211,40 @@ void pcstats::get_cpu_temp() {
         path[28] = c;
         file.open(path);
     }
+}
+
+string pcstats::cpu_name() const {
+    return cpu.name;
+}
+
+int pcstats::cpu_cores() const {
+    return cpu.cores;
+}
+
+int pcstats::cpu_sensors() const {
+    return cpu.coreTemps.size();
+}
+
+double pcstats::get_total_ram() const {
+    return ram.totalRamd;
+}
+
+double pcstats::get_ram_usage() const {
+    return ram.ramUsage;
+}
+
+double pcstats::get_core_freq(int core) const {
+    if(core == -1) return cpu.cpuFreq;
+    else return cpu.coresFreq[core];
+}
+
+double pcstats::get_core_usage(int core) const {
+    if(core == -1) return cpu.cpuUsage;
+    else return cpu.coresUsage[core];
+}
+
+pair<string,double> pcstats::get_core_temp(int core) const {
+    return cpu.coreTemps[core];
 }
 
 void pcstats::reset_saved_stats() {
