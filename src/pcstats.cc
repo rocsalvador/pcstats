@@ -52,35 +52,35 @@ pcstats::pcstats()
     }
     file.close();
     
-    string path = "/sys/class/hwmon/hwmon0/name";
+    int i = 0;
+    cpu.cpuTempFolder = "/sys/class/hwmon/hwmon";
+    string path = cpu.cpuTempFolder;
+    path.append(to_string(i));
     bool found = false;
-    char i = '0';
-    file.open(path);
+    file.open(path + "/name");
     while(file.is_open() and not found) {
         file >> aux;
         found = (aux == "coretemp");
         file.close();
-        i += 1;
-        path[22] = i;
-        file.open(path);
+        ++i;
+        path = cpu.cpuTempFolder, path.append(to_string(i));
+        file.open(path + "/name");
     }
     file.close();
     if(found) {
-        --i;
-        path[22] = i;
-        cpu.cpuTempFolder = path.substr(0,23);
-        path = cpu.cpuTempFolder;
-        path.append("/temp1_label");
-        i = '1';
-        file.open(path);
+        cpu.cpuTempFolder.append(to_string(i-1));
+        i = 1;
+        path = cpu.cpuTempFolder, path.append("/temp"), path.append(to_string(i));
+        file.open(path + "_label");
         while(file.is_open()) {
             getline(file,aux);
             cpu.coreTemps.push_back({aux,-1});
             file.close();
             ++i;
-            path[28] = i;
-            file.open(path);
+            path = cpu.cpuTempFolder, path.append("/temp"), path.append(to_string(i));
+            file.open(path + "_label");
         }
+        file.close();
     }
     
     reset_saved_stats();
@@ -199,18 +199,20 @@ void pcstats::update_cpu_freq() {
 void pcstats::update_cpu_temp() {
     ifstream file;
     double temp;
+    int j = 1;
     string path = cpu.cpuTempFolder;
-    path.append("/temp1_input");
-    char c = '1';
-    file.open(path);
+    path.append("/temp"), path.append(to_string(j));
+    file.open(path + "_input");
     for(int i = 0; i < cpu.coreTemps.size(); ++i) {
         file >> temp;
         cpu.coreTemps[i].second = temp/1000;
         file.close();
-        ++c;
-        path[28] = c;
-        file.open(path);
+        ++j;
+        path = cpu.cpuTempFolder, path.append("/temp"), path.append(to_string(j));
+        file.open(path + "_input");
     }
+    file.close();
+    ++cpu.tempCounter;
 }
 
 string pcstats::cpu_name() const {
@@ -252,4 +254,5 @@ void pcstats::reset_saved_stats() {
     ram.avgUsage = 0, ram.maxUsage = 0;
     ram.usageCounter = 0;
     cpu.usageCounter = 0, cpu.freqCounter = 0;
+    cpu.maxTemp = 0, cpu.avgTemp = 0, cpu.tempCounter = 0;
 }

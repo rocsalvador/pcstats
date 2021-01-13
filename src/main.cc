@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <signal.h>
+#include <string>
 #include "pcstats.hh"
 
 
@@ -18,6 +19,13 @@ void init_signals() {
     sa.sa_flags = 0;
     sa.sa_handler = &signal_treatment;
     sigaction(SIGINT, &sa, NULL);
+}
+
+void usage() {
+    cout << "pcstats [OPTIONS]" << endl;
+    cout << "OPTIONS:" << endl;
+    cout << "-n refres_rate     set refresh rate (default: 1s)" << endl;
+    exit(0);
 }
 
 void print_stats(pcstats& stats, double time) {
@@ -57,14 +65,12 @@ void print_stats(pcstats& stats, double time) {
 }
 
 
-int main() {
-    double time;
-    system("clear");
-    cout << "Refresh rate (s): ";
-    cin >> time;
-    if(time <= 0) {
-        cout << "ERROR: Refresh rate must be a doble greater than 0" << endl;
-        return 0;
+int main(int argc, char* argv[]) {
+    double time = 1;
+    vector<string> arguments = {"-n"};
+    if(argc > 1) {
+        if(argc == 3 and argv[1] == arguments[0]) time = stod(argv[2]);
+        else if(argc >= 2) usage();
     }
     pcstats stats;
     init_signals();

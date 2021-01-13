@@ -16,14 +16,18 @@ private:
         vector<double> coresUsage;
         vector<unsigned long> coresLast;
         unsigned long long  lastUser, lastNice, lastSystem, lastIdle;
+        int usageCounter;
+        double maxUsage, avgUsage;
         
         double cpuFreq;
         vector<double> coresFreq;
-        int usageCounter, freqCounter;
-        double maxFreq, maxUsage, avgUsage, avgFreq;
+        int freqCounter;
+        double maxFreq, avgFreq;
         
         string cpuTempFolder;
         vector<pair<string,double>> coreTemps;
+        int tempCounter;
+        double maxTemp, avgTemp;
     };
 
     struct ram_info {
