@@ -18,3 +18,6 @@ pcstats [OPTIONS]
 OPTIONS:
 -n refres_rate     set refresh rate (default: 1s)
 ```
+## Example
+![Screenshot_20210115_120411](https://user-images.githubusercontent.com/58912154/104718024-88c84000-572a-11eb-82ff-6fc761b1f539.png)
+
