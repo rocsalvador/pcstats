@@ -1,24 +1,16 @@
-#include <unistd.h>
-#include <signal.h>
+#include <csignal>
 #include <string>
+#include <chrono>
+#include <thread>
 #include "pcstats.hh"
-
 
 void signal_treatment(int s) {
     if(s == SIGINT) {
-        char c;
+        string s;
         cout << " q to quit, any else key to resume: ";
-        cin >> c;
-        if(c == 'q') exit(0);
+        getline(cin,s);
+        if(s == "q") exit(0);
     }
-}
-
-void init_signals() {
-    struct sigaction sa;
-    sigfillset(&sa.sa_mask);
-    sa.sa_flags = 0;
-    sa.sa_handler = &signal_treatment;
-    sigaction(SIGINT, &sa, NULL);
 }
 
 void usage() {
@@ -29,9 +21,12 @@ void usage() {
 }
 
 void print_stats(pcstats& stats, double time) {
-    stats.update_cpu_freq(), stats.update_cpu_usage(), stats.update_ram_usage(), stats.update_cpu_temp();
+    stats.update_cpu_freq();
+    stats.update_cpu_temp();
+    stats.update_cpu_usage();
+    stats.update_ram_usage();
     
-    system("clear");
+    system("clear");   
     cout << "CPU model: " << stats.cpu_name() << endl << endl;
     
     cout << "CPU temp:" << endl;
@@ -66,17 +61,22 @@ void print_stats(pcstats& stats, double time) {
 
 
 int main(int argc, char* argv[]) {
-    double time = 1;
+    double time = 1; 
+    int time_mili = 1000;
     vector<string> arguments = {"-n"};
     if(argc > 1) {
-        if(argc == 3 and argv[1] == arguments[0]) time = stod(argv[2]);
+        if(argc == 3 and argv[1] == arguments[0]) {
+            time = stod(argv[2]);
+            time_mili *= time;
+        }
         else if(argc >= 2) usage();
     }
+    
     pcstats stats;
-    init_signals();
-    usleep(100000);
+    this_thread::sleep_for(chrono::milliseconds(100));
+    signal(SIGINT, signal_treatment);
     while(true) {
         print_stats(stats,time);
-        usleep(time*1000000);
+        this_thread::sleep_for(chrono::milliseconds(time_mili));
     }
 }
