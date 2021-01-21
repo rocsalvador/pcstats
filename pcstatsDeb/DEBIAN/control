@@ -4,6 +4,6 @@ Section: custom
 Priority: optional
 Architecture: all
 Essential: no
-Installed-Size: 1049
+Depends: libncurses6
 Maintainer: user
 Description: Monitor CPU and RAM stats

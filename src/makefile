@@ -1,5 +1,5 @@
 pcstats: main.o pcstats.o
-	g++ -std=c++11 -o pcstats main.o pcstats.o
+	g++ -std=c++11 -o pcstats main.o pcstats.o -lncurses
 	rm *.o
 
 pcstats.o: pcstats.cc

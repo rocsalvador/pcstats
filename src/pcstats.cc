@@ -1,7 +1,6 @@
 #include "pcstats.hh"
 
-pcstats::pcstats()
-{
+pcstats::pcstats() {
     ifstream file;
     file.open("/proc/cpuinfo");
     if(not file.is_open()) {
@@ -135,7 +134,8 @@ void pcstats::update_cpu_usage() {
     int total = (User - cpu.lastUser) + (Nice - cpu.lastNice) + (System - cpu.lastSystem);
     cpu.cpuUsage = total;
     total += (Idle - cpu.lastIdle);
-    cpu.cpuUsage /= total;
+    if(total > 0) cpu.cpuUsage /= total;
+    else cpu.cpuUsage = 0;
     cpu.cpuUsage *= 100;
     
     cpu.lastUser = User;
@@ -153,7 +153,8 @@ void pcstats::update_cpu_usage() {
         total = (User - cpu.coresLast[i*4]) + (Nice - cpu.coresLast[i*4+1]) + (System - cpu.coresLast[i*4+2]);
         cpu.coresUsage[i] = total;
         total += (Idle - cpu.coresLast[i*4+3]);
-        cpu.coresUsage[i] /= total;
+        if(total > 0) cpu.coresUsage[i] /= total;
+        else cpu.coresUsage[i] = 0;
         cpu.coresUsage[i] *= 100;
         
         cpu.coresLast[i*4] = User;
@@ -245,7 +246,7 @@ double pcstats::get_core_usage(int core) const {
     else return cpu.coresUsage[core];
 }
 
-pair<string,double> pcstats::get_core_temp(int core) const {
+pair<string,int> pcstats::get_core_temp(int core) const {
     return cpu.coreTemps[core];
 }
 

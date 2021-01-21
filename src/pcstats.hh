@@ -25,7 +25,7 @@ private:
         double maxFreq, avgFreq;
         
         string cpuTempFolder;
-        vector<pair<string,double>> coreTemps;
+        vector<pair<string,int>> coreTemps;
         int tempCounter;
         double maxTemp, avgTemp;
     };
@@ -60,7 +60,7 @@ public:
     
     double get_core_usage(int core) const;
     
-    pair<string,double> get_core_temp(int core) const;
+    pair<string,int> get_core_temp(int core) const;
     
     double get_core_freq(int core) const;
     
