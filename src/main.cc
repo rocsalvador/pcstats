@@ -39,7 +39,7 @@ void print_exit_screen() {
             wprintw(exit_screen, "no");
             
             wrefresh(exit_screen);
-            yes = true;
+            yes = not yes;
         }
         else if(c == 410) {
             wclear(exit_screen);
