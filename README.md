@@ -8,10 +8,14 @@ Open a terminal in the download folder and run the following command:
 ```bash
 $ sudo dpkg -i pcstats.deb
 ```
+If you get a dependency error, run:
+```bash
+$ sudo apt install -f
+```
 ### Build from source
 Clone the repository and open a terminal in the src folder and run ```make```
 
-Make sure that you have ```g++``` and ```make``` installed in your machine
+Make sure that you have ```g++``` , ```make``` and ```libncurses6``` installed in your machine
 ## Usage
 ```bash
 pcstats [OPTIONS]
@@ -19,5 +23,5 @@ OPTIONS:
 -n refres_rate     set refresh rate (default: 1s)
 ```
 ## Example
-![Screenshot_20210115_120411](https://user-images.githubusercontent.com/58912154/104718024-88c84000-572a-11eb-82ff-6fc761b1f539.png)
+<img src="https://media.giphy.com/media/MztuHRlu5af5QapfL0/giphy.gif">
 
