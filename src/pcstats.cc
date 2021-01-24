@@ -1,6 +1,7 @@
 #include "pcstats.hh"
 
-pcstats::pcstats() {
+pcstats::pcstats() 
+{
     ifstream file;
     file.open("/proc/cpuinfo");
     if(not file.is_open()) {
@@ -85,7 +86,8 @@ pcstats::pcstats() {
     reset_saved_stats();
 }
 
-void pcstats::update_ram_usage() {
+void pcstats::update_ram_usage() 
+{
     ifstream file;
     file.open("/proc/meminfo");
     if(not file.is_open()) {
@@ -119,7 +121,8 @@ void pcstats::update_ram_usage() {
     ram.maxUsage = max(ram.maxUsage, ram.usedRamd);
 }
 
-void pcstats::update_cpu_usage() {
+void pcstats::update_cpu_usage() 
+{
     unsigned long long User, Nice, System, Idle;
     string aux;
     ifstream file;
@@ -165,7 +168,8 @@ void pcstats::update_cpu_usage() {
     file.close();
 }
 
-void pcstats::update_cpu_freq() {
+void pcstats::update_cpu_freq() 
+{
     ifstream file;
     file.open("/proc/cpuinfo");
     if(not file.is_open()) {
@@ -197,7 +201,8 @@ void pcstats::update_cpu_freq() {
     file.close();
 }
 
-void pcstats::update_cpu_temp() {
+void pcstats::update_cpu_temp() 
+{
     ifstream file;
     double temp;
     int j = 1;
@@ -216,41 +221,58 @@ void pcstats::update_cpu_temp() {
     ++cpu.tempCounter;
 }
 
-string pcstats::cpu_name() const {
+void pcstats::update_stats() 
+{
+    update_cpu_freq();
+    update_cpu_temp();
+    update_cpu_usage();
+    update_ram_usage();
+}
+
+string pcstats::cpu_name() const 
+{
     return cpu.name;
 }
 
-int pcstats::cpu_cores() const {
+int pcstats::cpu_cores() const 
+{
     return cpu.cores;
 }
 
-int pcstats::cpu_sensors() const {
+int pcstats::cpu_sensors() const 
+{
     return cpu.coreTemps.size();
 }
 
-double pcstats::get_total_ram() const {
+double pcstats::get_total_ram() const 
+{
     return ram.totalRamd;
 }
 
-double pcstats::get_ram_usage() const {
+double pcstats::get_ram_usage() const 
+{
     return ram.ramUsage;
 }
 
-double pcstats::get_core_freq(int core) const {
+double pcstats::get_core_freq(int core) const 
+{
     if(core == -1) return cpu.cpuFreq;
     else return cpu.coresFreq[core];
 }
 
-double pcstats::get_core_usage(int core) const {
+double pcstats::get_core_usage(int core) const 
+{
     if(core == -1) return cpu.cpuUsage;
     else return cpu.coresUsage[core];
 }
 
-pair<string,int> pcstats::get_core_temp(int core) const {
+pair<string,int> pcstats::get_core_temp(int core) const
+{
     return cpu.coreTemps[core];
 }
 
-void pcstats::reset_saved_stats() {
+void pcstats::reset_saved_stats() 
+{
     cpu.maxFreq = 0, cpu.avgUsage = 0, cpu.avgUsage = 0, cpu.maxUsage = 0;
     ram.avgUsage = 0, ram.maxUsage = 0;
     ram.usageCounter = 0;

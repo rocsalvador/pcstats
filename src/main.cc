@@ -2,16 +2,18 @@
 #include <unistd.h>
 #include "pcstats.hh"
 
-void usage() {
+void usage() 
+{
     cout << "pcstats [OPTIONS]" << endl;
     cout << "OPTIONS:" << endl;
     cout << "-n refres_rate     set refresh rate (default: 1s)" << endl;
 }
 
-void print_exit_screen() {
+void print_exit_screen() 
+{
     int height, width;
     getmaxyx(stdscr,height,width);
-    WINDOW* exit_screen = newwin(5,46,(height-3)/2,(width-46)/2);
+    WINDOW* exit_screen = newwin(5,46,(height-5)/2,(width-46)/2);
     keypad(exit_screen, true);
     box(exit_screen,0,0);
     wmove(exit_screen, 1, 1);
@@ -41,12 +43,12 @@ void print_exit_screen() {
             wrefresh(exit_screen);
             yes = not yes;
         }
-        else if(c == 410) {
+        else if(c == KEY_RESIZE) {
             wclear(exit_screen);
             wrefresh(exit_screen);
             int height, width;
             getmaxyx(stdscr,height,width);
-            exit_screen = newwin(5,46,(height-3)/2,(width-46)/2);
+            exit_screen = newwin(5,46,(height-5)/2,(width-46)/2);
             keypad(exit_screen, true);
             box(exit_screen,0,0);
             
@@ -67,7 +69,8 @@ void print_exit_screen() {
     }
 }
 
-void print_usage_bar(double usage, int height, int width) {
+void print_usage_bar(double usage,int width) 
+{ 
     printw("[");
     if(width >= 119) {
         for(int i = 0; i < int(usage); ++i) printw("=");
@@ -84,48 +87,50 @@ void print_usage_bar(double usage, int height, int width) {
     printw("%\n");
 }
 
-void print_stats(pcstats& stats, double time) {
+void print_stats(pcstats& stats, double time, int pos) 
+{
     int height, width;
     getmaxyx(stdscr,height,width);
+    
+    int num_cores = stats.cpu_cores(), num_sensors = stats.cpu_sensors();
+    
     clear();
-    
-    int min_height = 16 + 2*stats.cpu_cores() + stats.cpu_sensors();
-    
-    if(height < min_height or width < 22) return;
-    printw("CPU name: %s\n\n",stats.cpu_name().c_str());
-    
-    printw("CPU temp:\n");
-    for(int i = 0; i < stats.cpu_sensors(); ++i) {
-        printw("%s: %dºC\n",stats.get_core_temp(i).first.c_str(), stats.get_core_temp(i).second);
+    for(int i = pos; i < height+pos-1; ++i) {
+        if(i == 0) printw("CPU name: %s\n",stats.cpu_name().c_str());
+        else if(i == 2) printw("CPU temp:\n");
+        else if(i >= 3 and i <= 2+num_sensors) {
+            int j = i-3;
+            printw("%s: %dºC\n",stats.get_core_temp(j).first.c_str(), stats.get_core_temp(j).second);
+        }
+        else if(i == 4+num_sensors) printw("CPU usage:\n");
+        else if(i == 5+num_sensors) {
+            printw("CPU ");
+            print_usage_bar(stats.get_core_usage(-1), width);
+        }
+        else if(i >= 6+num_sensors and i <= 5+num_cores+num_sensors) {
+            int j = i-(6+num_sensors);
+            printw("CPU%d ",j);
+            print_usage_bar(stats.get_core_usage(j), width);
+        }
+        else if(i == 7+num_cores+num_sensors) printw("CPU freq:\n");
+        else if(i >= 8+num_cores+num_sensors and i <= 7+2*num_cores+num_sensors) {
+            int j = i-(8+num_cores+num_sensors);
+            printw("CPU%d: %f MHz\n",j,stats.get_core_freq(j));
+        }
+        else if(i == 9+2*num_cores+num_sensors) printw("RAM usage:\n");
+        else if(i == 10+2*num_cores+num_sensors) print_usage_bar(stats.get_ram_usage(), width);
+        else if(i == 11+2*num_cores+num_sensors) printw("[%f/%f] GB\n\n",stats.get_total_ram()*stats.get_ram_usage()/100,stats.get_total_ram());
+        else printw("\n");
     }
-    printw("\n");
     
-    printw("CPU usage:\nCPU  ");
-    print_usage_bar(stats.get_core_usage(-1), height, width);
-    for(int i = 0; i < stats.cpu_cores(); ++i) {
-        printw("CPU%d ",i);
-        print_usage_bar(stats.get_core_usage(i), height, width);
-    }
-    printw("\n");
-    
-    printw("CPU freq:\n");
-    printw("CPU: %f MHz\n",stats.get_core_freq(-1));
-    for(int i = 0; i < stats.cpu_cores(); ++i) {
-        printw("CPU%d: %f MHz\n",i,stats.get_core_freq(i));
-    }
-    printw("\n");
-    
-    printw("RAM usage:\n");
-    print_usage_bar(stats.get_ram_usage(), height, width);
-    printw("[%f/%f] GB\n\n",stats.get_total_ram()*stats.get_ram_usage()/100,stats.get_total_ram());
-    
-    printw("Refresing every %f seconds\n", time);
+    printw("Refreshing every %f seconds\n", time);
     
     refresh();
 }
 
 
-int main(int argc, char* argv[]) {    
+int main(int argc, char* argv[]) 
+{    
     double time = 1; 
     int time_mili = 1000;
     vector<string> arguments = {"-n"};
@@ -149,17 +154,19 @@ int main(int argc, char* argv[]) {
     curs_set(0);
     clear();
     
+    int act_line = 0;
+    int min_height = 13 + 2*stats.cpu_cores() + stats.cpu_sensors();
+    int c = -1;
+    
     usleep(100000);
     
-    int c = -1;
+    stats.update_stats();
+    print_stats(stats,time,act_line);
+    
     while(true) {
-        if(c == -1) {
-            stats.update_cpu_freq();
-            stats.update_cpu_temp();
-            stats.update_cpu_usage();
-            stats.update_ram_usage();
-        }
-        print_stats(stats,time);
+        int height, width;
+        getmaxyx(stdscr,height,width);
+        
         timeout(time_mili);
         if((c = getch())) {
             if(c == 'q') {
@@ -169,34 +176,54 @@ int main(int argc, char* argv[]) {
                 endwin();
                 return 0;
             }
-            else if(c == KEY_UP) {
-                time_mili += 50;
-                time += 0.05;
+            else if(c == KEY_RESIZE) {
+                if(height >= min_height) act_line = 0;
+                print_stats(stats,time,act_line);
             }
-            else if(c == KEY_DOWN and time > 0.1) {
-                time_mili -= 50;
-                time -= 0.05;
+            else if(c == KEY_UP and height < min_height and act_line > 0) {
+                --act_line;
+                print_stats(stats,time,act_line);
+            }
+            else if(c == KEY_DOWN and height < min_height and act_line+height < min_height) {
+                ++act_line;
+                print_stats(stats,time,act_line);
             }
             else if(c >= '0' and c <= '9') {
-                timeout(-1);
-                printw("%c",c);
-                refresh();
-                echo();
                 string num; num.push_back(c);
-                char c;
+                
+                timeout(-1);
+                echo();
+                move(height-1,0);
+                clrtoeol();
+                printw("Refreshing every %s seconds", num.c_str());
+                refresh();
+                
+                bool point = false;
                 while((c = getch())) {
                     if(c == '\n') {
-                        int ret = atof(num.c_str());
-                        if(ret >= 1) {
+                        double ret = atof(num.c_str());
+                        if(ret >= 0.1) {
                             time_mili = ret*1000;
                             time = ret;
                         }
                         break;
                     }
-                    else if(c >= '0' and c <= '9') num.push_back(c);
+                    else if((c >= '0' and c <= '9') or (c == '.' and not point)) {
+                        if(c == '.') point = true;
+                        num.push_back(c);
+                        move(height-1,0);
+                        clrtoeol();
+                        printw("Refreshing every %s seconds", num.c_str());
+                        refresh();
+                    }
                     else break;
                 }
                 noecho();
+                print_stats(stats,time,act_line);
+            }
+            if(c == -1) {
+                stats.update_stats();
+                print_stats(stats,time,act_line);
             }
         }
     }

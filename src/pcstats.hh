@@ -52,6 +52,8 @@ public:
     
     void update_cpu_temp();
     
+    void update_stats();
+    
     string cpu_name() const;
 
     double get_total_ram() const;
