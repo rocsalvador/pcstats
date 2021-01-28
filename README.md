@@ -15,7 +15,7 @@ $ sudo apt install -f
 ### Build from source
 Clone the repository and open a terminal in the src folder and run ```make```
 
-Make sure that you have ```g++``` , ```make``` and ```libncurses6``` installed in your machine
+Make sure that you have ```g++``` , ```make``` and ```ncurses``` installed in your machine
 ## Usage
 ```bash
 pcstats [OPTIONS]
