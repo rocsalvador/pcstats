@@ -23,5 +23,5 @@ OPTIONS:
 -n refres_rate     set refresh rate (default: 1s)
 ```
 ## Example
-<img src="https://media.giphy.com/media/fDDdnVPz1PcK7vMHys/giphy.gif">
+
 
