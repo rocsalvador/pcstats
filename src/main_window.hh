@@ -1,5 +1,6 @@
 #include "pcstats.hh"
 #include <cstdlib>
+#include <list>
 #include <ncurses.h>
 using namespace std;
 
@@ -14,18 +15,16 @@ private:
     
     int max_stdsrc_height, max_stdsrc_width;
     
-    int x_cpu, x_ram;
+    list<int> cpu_usage_history, ram_usage_history;
     
     string refresh_rate;
     
     pcstats stats;
     
-    void print_graphic(WINDOW* win, double data, int x);
-    
     void clear_box(WINDOW* win);
     
 public:
-    main_window(string refresh_rate);
+    main_window(const string& refresh_rate);
     
     void print_cpu_graphic();
     
