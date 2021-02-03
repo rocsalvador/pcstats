@@ -61,7 +61,7 @@ void main_window::print_ram_graphic() {
         x_ram = 1;
     }
     else ++x_ram;
-    wmove(ram_usage_win, 0, max_stdsrc_width/2-25), wprintw(ram_usage_win, "[%f/%f GB]", stats.get_total_ram()/100*stats.get_total_ram(), stats.get_total_ram());
+    wmove(ram_usage_win, 0, max_stdsrc_width/2-25), wprintw(ram_usage_win, "[%f/%f GB]", stats.get_ram_usage()/100*stats.get_total_ram(), stats.get_total_ram());
 }
 
 void main_window::resize() {
