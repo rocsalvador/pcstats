@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
     main_window win(to_string(time));
     
     int c;
-    timeout(1000);
+    timeout(100);
     while((c = getch())) {
         if(c == -1) {
             win.update_stats();
@@ -69,6 +69,7 @@ int main(int argc, char* argv[]) {
             }
             win.set_refresh_rate(to_string(time));
         }
+        else if(c == 'q') break;
         timeout(time*1000);
     }
     endwin();
