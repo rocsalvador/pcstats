@@ -20,9 +20,9 @@ private:
     
     pcstats stats;
     
-    void print_graphic(WINDOW* win, double data, int& x);
+    void print_graphic(WINDOW* win, double data, int x);
     
-    void print_label(WINDOW* win, char *c, int x);
+    void clear_box(WINDOW* win);
     
 public:
     main_window(string refresh_rate);
