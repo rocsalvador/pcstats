@@ -15,7 +15,7 @@ $ sudo apt install -f
 ### Build from source
 Clone the repository and open a terminal in the src folder and run ```make```
 
-Make sure that you have ```g++``` , ```make``` and ```ncurses-dev``` installed in your machine
+Make sure that you have ```g++``` , ```make``` and ```libncurses-dev``` installed in your machine
 ## Usage
 ```bash
 pcstats [OPTIONS]
@@ -23,5 +23,4 @@ OPTIONS:
 -n refres_rate     set refresh rate (default: 1s)
 ```
 ## Example
-
-
+![Image](https://user-images.githubusercontent.com/58912154/106855666-99326180-66bd-11eb-8d1f-fc9ce88c743c.png)
