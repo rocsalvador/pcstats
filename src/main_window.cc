@@ -46,10 +46,10 @@ void main_window::print_cpu_graphic() {
         ++j;
     }
     
-    wmove(cpu_usage_win, 0, max_stdsrc_width/2-16);
-    if(cpu_usage == 100) wprintw(cpu_usage_win, "[%f%]", stats.get_core_usage(-1));
-    else if(cpu_usage >= 10) wprintw(cpu_usage_win, "[ %f%]", stats.get_core_usage(-1));
-    else wprintw(cpu_usage_win, "[  %f%]", stats.get_core_usage(-1));
+    wmove(cpu_usage_win, 0, max_stdsrc_width/2-12);
+    if(cpu_usage == 100) wprintw(cpu_usage_win, "[%.2f%]", stats.get_core_usage(-1));
+    else if(cpu_usage >= 10) wprintw(cpu_usage_win, "[ %.2f%]", stats.get_core_usage(-1));
+    else wprintw(cpu_usage_win, "[  %.2f%]", stats.get_core_usage(-1));
 }
 
 void main_window::print_ram_graphic() {
@@ -71,7 +71,7 @@ void main_window::print_ram_graphic() {
         }
         ++j;
     }
-    wmove(ram_usage_win, 0, max_stdsrc_width/2-25), wprintw(ram_usage_win, "[%f/%f GB]", stats.get_ram_usage()/100*stats.get_total_ram(), stats.get_total_ram());
+    wmove(ram_usage_win, 0, max_stdsrc_width/2-17), wprintw(ram_usage_win, "[%.2f/%.2f GB]", stats.get_ram_usage()/100*stats.get_total_ram(), stats.get_total_ram());
 }
 
 void main_window::resize() {
@@ -83,13 +83,13 @@ void main_window::resize() {
     cpu_usage_win = newwin((max_stdsrc_height-1)/2, max_stdsrc_width/2, 0, 0);
     box(cpu_usage_win, 0, 0);
     wmove(cpu_usage_win, 0, 1), wprintw(cpu_usage_win, "CPU usage");
-    wmove(cpu_usage_win, 0, max_stdsrc_width/2-16), wprintw(cpu_usage_win, "[%f%]", stats.get_core_usage(-1));
+    wmove(cpu_usage_win, 0, max_stdsrc_width/2-12), wprintw(cpu_usage_win, "[%.2f%]", stats.get_core_usage(-1));
     
     ram_usage_win = newwin(max_stdsrc_height-1-(max_stdsrc_height-1)/2, max_stdsrc_width/2, (max_stdsrc_height-1)/2, 0);
     box(ram_usage_win, 0, 0);
     wmove(ram_usage_win, 0, 1), wprintw(ram_usage_win, "RAM usage");
-    wmove(ram_usage_win, 0, max_stdsrc_width/2-25);
-    wprintw(ram_usage_win, "[%f/%f GB]", stats.get_ram_usage()/100*stats.get_total_ram(), stats.get_total_ram());
+    wmove(ram_usage_win, 0, max_stdsrc_width/2-17);
+    wprintw(ram_usage_win, "[%.2f/%.2f GB]", stats.get_ram_usage()/100*stats.get_total_ram(), stats.get_total_ram());
     
     core_usage_win = newwin(max_stdsrc_height/3, max_stdsrc_width/2, 0, max_stdsrc_width/2);
     box(core_usage_win, 0, 0);
@@ -123,7 +123,7 @@ void main_window::print_core_usage() {
     else n = stats.cpu_cores();
     for(int i = 0; i < n; ++i) {
         wmove(core_usage_win, i+1, 1);
-        wprintw(core_usage_win, "CPU%d: %f %", i, stats.get_core_usage(i));
+        wprintw(core_usage_win, "CPU%d: %.2f % %", i, stats.get_core_usage(i));
     }
 }
 
@@ -147,7 +147,7 @@ void main_window::print_core_freq() {
     else n = stats.cpu_cores();
     for(int i = 0; i < n; ++i) {
         wmove(core_freq_win, i+1, 1);
-        wprintw(core_freq_win, "CPU%d: %f MHz", i, stats.get_core_freq(i));
+        wprintw(core_freq_win, "CPU%d: %d MHz", i, int(stats.get_core_freq(i)));
     }
 }
 
