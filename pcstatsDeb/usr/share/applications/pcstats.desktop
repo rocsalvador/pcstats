@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=pcstats
+Version=3.0
+Type=Application
+Comment=CPU and RAM monitor
+Terminal=true
+Exec=/usr/bin/pcstats
+Icon=utilities-system-monitor
+Categories=System;
