@@ -24,6 +24,7 @@ private:
         int freqCounter;
         double maxFreq, avgFreq;
         
+        
         string cpuTempFolder;
         vector<pair<string,int>> coreTemps;
         int tempCounter;
@@ -39,7 +40,7 @@ private:
 
     cpu_info cpu;
     ram_info ram;
-    const double divisor = 1048576;
+    constexpr static double divisor = 1048576;
 
 public:
     pcstats();

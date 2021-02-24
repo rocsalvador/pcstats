@@ -1,3 +1,6 @@
+#ifndef MAIN_WINDOW_HH
+#define MAIN_WINDOW_HH
+
 #include "pcstats.hh"
 #include <cstdlib>
 #include <list>
@@ -6,6 +9,8 @@ using namespace std;
 
 class main_window {
 private:
+    //Private attributes
+    
     WINDOW* cpu_usage_win;
     WINDOW* ram_usage_win;
     WINDOW* core_usage_win;
@@ -17,14 +22,14 @@ private:
     
     list<int> cpu_usage_history, ram_usage_history;
     
-    string refresh_rate;
+    double refresh_rate;
     
     pcstats stats;
+
+    
+    //Private functions
     
     void clear_box(WINDOW* win);
-    
-public:
-    main_window(const string& refresh_rate);
     
     void print_cpu_graphic();
     
@@ -45,4 +50,13 @@ public:
     void resize();
     
     void update_stats();
+    
+public:
+    main_window(const double& refresh_rate);
+    
+    void show();
+    
+    ~main_window();
 };
+
+#endif

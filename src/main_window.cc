@@ -1,6 +1,9 @@
 #include "main_window.hh"
 
-main_window::main_window(const string& refresh_rate) {
+main_window::main_window(const double& refresh_rate) {
+    initscr();
+    noecho();
+    curs_set(0);
     this->refresh_rate = refresh_rate;
     resize();
 }
@@ -104,11 +107,10 @@ void main_window::resize() {
     wmove(core_freq_win, 0, 1), wprintw(core_freq_win, "Core frequency");
     
     refresh_rate_win = newwin(1, max_stdsrc_width/2, max_stdsrc_height-1, 0);
-    wprintw(refresh_rate_win, "Refreshing every %s seconds", refresh_rate.c_str());
+    wprintw(refresh_rate_win, "Refreshing every %.2f seconds", refresh_rate);
 }
 
 void main_window::set_refresh_rate(string refresh_rate) {
-    this->refresh_rate = refresh_rate;
     wclear(refresh_rate_win);
     wprintw(refresh_rate_win, "Refreshing every %s seconds", refresh_rate.c_str());
     wrefresh(refresh_rate_win);
@@ -161,4 +163,58 @@ void main_window::print_all_win() {
 
 void main_window::update_stats() {
     stats.update_stats();
+}
+
+void main_window::show() {
+    int c;
+    timeout(100);
+    while((c = getch())) {
+        if(c == -1) {
+            update_stats();
+            print_all_win();
+            refresh_all_win();
+        }
+        
+        if(c == KEY_RESIZE) {
+            resize();
+        }
+        else if(c >= '0' and c <= '9') {
+            int decimal_size = 0;
+            string num;
+            num.push_back(c);
+            set_refresh_rate(num);
+            bool point = false;
+            timeout(3000);
+            while(decimal_size < 4 and (c = getch())) {
+                if(c == '.') {
+                    if(point) break;
+                    else {
+                        num.push_back(c);
+                        set_refresh_rate(num);
+                        point = true;
+                    }
+                }
+                else if(c >= '0' and c <= '9') {
+                    num.push_back(c);
+                    set_refresh_rate(num); 
+                }
+                else if(c == '\n') {
+                    if(stod(num) >= 0.01) refresh_rate = stod(num);
+                    break;
+                }
+                else break;
+                
+                if(point) ++decimal_size;
+            }
+            wclear(refresh_rate_win);
+            wprintw(refresh_rate_win, "Refreshing every %.2f seconds", refresh_rate);
+            wrefresh(refresh_rate_win);
+        }
+        else if(c == 'q') break;
+        timeout(refresh_rate*1000);
+    }
+}
+
+main_window::~main_window() {
+    endwin();
 }
