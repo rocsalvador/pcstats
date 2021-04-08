@@ -3,6 +3,5 @@ Version: 3.0
 Section: custom
 Architecture: amd64
 Depends: ncurses-base
-Maintainer: Roc Salvador <rocsalvador001@protonmail.com>
 Description: Monitor CPU and RAM stats
 Homepage: https://github.com/rocsalvador/pcstats
