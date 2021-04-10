@@ -11,5 +11,13 @@ main_window.o: main_window.cc
 main.o: main.cc
 	g++ -std=c++11 -c main.cc
 
+install: pcstats
+	sudo cp pcstats /usr/bin
+	sudo cp ../packages/pcstats.desktop /usr/share/applications
+
+uninstall:
+	sudo rm /usr/bin/pcstats
+	sudo rm /usr/share/applications/pcstats.desktop
+
 clean:
 	rm pcstats
