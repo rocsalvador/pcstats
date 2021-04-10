@@ -11,7 +11,7 @@ Architecture: amd64
 Depends: ncurses-base
 Maintainer: rocsalvador
 Description: Monitor CPU and RAM stats
-Homepage: https://github.com/rocsalvador/pcstats" > pcstats_deb/DEBIANcontrol
+Homepage: https://github.com/rocsalvador/pcstats" > pcstats_deb/DEBIAN/control
 cp pcstats.desktop pcstats_deb/usr/share/applications
 make -C ../src
 cp ../src/pcstats pcstats_deb/usr/bin/
