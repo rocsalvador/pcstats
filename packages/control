@@ -1,8 +1,0 @@
-Package: pcstats
-Version: 3.0
-Section: custom
-Architecture: amd64
-Depends: ncurses-base
-Maintainer: rocsalvador
-Description: Monitor CPU and RAM stats
-Homepage: https://github.com/rocsalvador/pcstats

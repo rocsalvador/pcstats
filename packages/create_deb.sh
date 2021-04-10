@@ -4,6 +4,15 @@ mkdir -p pcstats_deb/DEBIAN
 mkdir -p pcstats_deb/usr/bin
 mkdir -p pcstats_deb/usr/share/applications
 
+echo "Package: pcstats
+Version: 3.0
+Section: custom
+Architecture: amd64
+Depends: ncurses-base
+Maintainer: rocsalvador
+Description: Monitor CPU and RAM stats
+Homepage: https://github.com/rocsalvador/pcstats" > control
+
 cp control pcstats_deb/DEBIAN
 cp pcstats.desktop pcstats_deb/usr/share/applications
 make -C ../src
