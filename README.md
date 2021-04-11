@@ -13,7 +13,9 @@ If you get a dependency error, run:
 $ sudo apt install -f
 ```
 ### Build from source
-Clone the repository and open a terminal in the src folder and run ```make```
+Clone the repository and open a terminal in the src folder and run:
+- ```make```: generates the executable file
+- ```make install```: generates the executable and installs it (```make uninstall``` to uninstall it)
 
 Make sure that you have ```g++``` , ```make``` and ```libncurses-dev``` installed in your machine
 ## Usage
