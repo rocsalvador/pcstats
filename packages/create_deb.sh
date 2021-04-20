@@ -24,7 +24,7 @@ Comment=CPU and RAM monitor
 Terminal=true
 Exec=/usr/bin/pcstats
 Icon=utilities-system-monitor
-Categories=System;"  > pcstats_deb/usr/share/applications
+Categories=System;"  > pcstats_deb/usr/share/applications/pcstats.desktop
 
 make -C ../src
 cp ../src/pcstats pcstats_deb/usr/bin/
