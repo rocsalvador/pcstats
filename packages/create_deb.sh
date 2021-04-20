@@ -30,10 +30,11 @@ make -C ../src
 cp ../src/pcstats pcstats_deb/usr/bin/
 
 dpkg --build pcstats_deb/
-mv pcstats_deb.deb pcstats.deb
+package_name=pcstats_"$version"_amd64.deb
+mv pcstats_deb.deb $package_name
 
-echo -n "Do you want to install pcstats.deb? [Y/n] "
+echo -n "Do you want to install $package_name [Y/n] "
 read -r c
 if [ "$c" = "Y" ] || [ "$c" = "y" ] || [ "$c" = "" ]; then
-    sudo dpkg -i pcstats.deb
+    sudo dpkg -i $package_name
 fi
