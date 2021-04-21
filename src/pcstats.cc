@@ -204,7 +204,7 @@ void pcstats::update_cpu_temp() {
     string path = cpu.cpuTempFolder;
     path.append("/temp"), path.append(to_string(j));
     file.open(path + "_input");
-    for(int i = 0; i < cpu.coreTemps.size(); ++i) {
+    for(unsigned int i = 0; i < cpu.coreTemps.size(); ++i) {
         file >> temp;
         cpu.coreTemps[i].second = temp/1000;
         file.close();

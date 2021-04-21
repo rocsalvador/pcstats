@@ -45,7 +45,7 @@ void main_window::refresh_all_win() {
 
 
 void main_window::print_cpu_graphic() {
-    int max_win_height, max_win_width;
+    unsigned int max_win_height, max_win_width;
     getmaxyx(cpu_usage_win, max_win_height, max_win_width);
     double cpu_usage = stats->get_core_usage(-1);
     int height = cpu_usage/100*(max_win_height-2);
@@ -71,7 +71,7 @@ void main_window::print_cpu_graphic() {
 }
 
 void main_window::print_ram_graphic() {
-    int max_win_height, max_win_width;
+    unsigned int max_win_height, max_win_width;
     getmaxyx(ram_usage_win, max_win_height, max_win_width);
     double ram_usage = stats->get_ram_usage();
     int height = ram_usage/100*(max_win_height-2);
