@@ -19,17 +19,21 @@ private:
     WINDOW* refresh_rate_win;
     
     int max_stdsrc_height, max_stdsrc_width;
+
+    int core_wins_width;
     
     list<int> cpu_usage_history, ram_usage_history;
     
     double refresh_rate;
     
-    pcstats stats;
+    pcstats *stats;
 
     
     //Private functions
     
     void clear_box(WINDOW* win);
+
+    void maximum_win_sizes();
     
     void print_cpu_graphic();
     
@@ -48,8 +52,6 @@ private:
     void set_refresh_rate(string refresh_rate);
     
     void resize();
-    
-    void update_stats();
     
 public:
     main_window(const double& refresh_rate);
