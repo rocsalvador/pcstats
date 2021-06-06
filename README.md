@@ -25,4 +25,4 @@ OPTIONS:
 -n refres_rate     set refresh rate (default: 1s)
 ```
 ## Example
-![Image](https://user-images.githubusercontent.com/58912154/116111327-d56ed000-a6b6-11eb-9498-abf2fc753764.png)
+![Image](https://user-images.githubusercontent.com/58912154/120934009-e4f12800-c6fc-11eb-9f2b-a3ec40b9cc0a.png)
