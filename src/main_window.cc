@@ -1,18 +1,28 @@
 #include "main_window.hh"
 #include "pcstats.hh"
+#include "processes.hh"
 #include <curses.h>
 
 main_window::main_window(const double& refresh_rate) {
     stats = new pcstats;
+
+    procs = new processes;
     
     this->refresh_rate = refresh_rate;
+
+    showedWin = 0;
+
+    nWins = 2;
+
+    procOffset = 0;
 
     // Init curses screen
     initscr();
     noecho();
+    keypad(stdscr, true);
     curs_set(0);
     maximum_win_sizes();
-    resize();
+    resizeStatsWin();
 }
 
 void main_window::maximum_win_sizes() {
@@ -93,7 +103,7 @@ void main_window::print_ram_graphic() {
     wprintw(ram_usage_win, "[%.2f/%.2f GB]", stats->get_ram_usage()/100*stats->get_total_ram(), stats->get_total_ram());
 }
 
-void main_window::resize() {
+void main_window::resizeStatsWin() {
     cpu_usage_history.clear();
     ram_usage_history.clear();
         
@@ -132,6 +142,31 @@ void main_window::resize() {
     
     refresh_rate_win = newwin(1, max_stdsrc_width-core_wins_width, max_stdsrc_height-1, 0);
     wprintw(refresh_rate_win, "Refreshing every %.2f seconds", refresh_rate);
+}
+
+void main_window::resizeProcsWin()
+{
+    getmaxyx(stdscr, max_stdsrc_height, max_stdsrc_width);
+    procsWin = newwin(max_stdsrc_height-1, max_stdsrc_width, 0, 0);
+    box(procsWin, 0, 0);
+
+    refresh_rate_win = newwin(1, max_stdsrc_width, max_stdsrc_height-1, 0);
+    wprintw(refresh_rate_win, "Refreshing every %.2f seconds", refresh_rate);
+    wrefresh(refresh_rate_win);
+}
+
+void main_window::printProcWin()
+{
+    clear_box(procsWin);
+    getmaxyx(stdscr, max_stdsrc_height, max_stdsrc_width);
+    wmove(procsWin, 1, max_stdsrc_width-4);
+    wprintw(procsWin, "%d", procs->getNProcs());
+    for(int i = 0; i < max_stdsrc_height-3 and i+procOffset < procs->getNProcs(); ++i) {
+        wmove(procsWin, i+1, 1);
+        wprintw(procsWin, "%s", procs->getProcName(i+procOffset).c_str());
+        wmove(procsWin, i+1, 20);
+        wprintw(procsWin, "%s\t%d", procs->getProcState(i+procOffset).c_str(), procs->getProcThreads(i+procOffset));
+    }
 }
 
 void main_window::set_refresh_rate(string refresh_rate) {
@@ -192,13 +227,35 @@ void main_window::show() {
     timeout(100);
     while((c = getch())) {
         if(c == -1) {
-            stats->update_stats();
-            print_all_win();
-            refresh_all_win();
+            if(showedWin == 0) {
+                stats->update_stats();
+                print_all_win();
+                refresh_all_win();
+            }
+            else if(showedWin == 1) {
+                procs->update();
+                printProcWin();
+                wrefresh(procsWin);
+            }
         }
         
         if(c == KEY_RESIZE) {
-            resize();
+            if(showedWin == 0) resizeStatsWin();
+            else if(showedWin == 1) resizeProcsWin();
+        }
+        else if(c == KEY_RIGHT) {
+            if(showedWin < nWins-1) ++showedWin;
+            if(showedWin == 1) resizeProcsWin();
+        }
+        else if(c == KEY_LEFT) {
+            if(showedWin > 0) --showedWin;
+            if(showedWin == 0) resizeStatsWin();
+        }
+        else if(c == KEY_UP) {
+            if(procOffset > 0) --procOffset;
+        }
+        else if(c == KEY_DOWN) {
+            if(procOffset < procs->getNProcs()-1) ++procOffset;
         }
         else if(c >= '0' and c <= '9') {
             int decimal_size = 0;
@@ -221,7 +278,7 @@ void main_window::show() {
                     set_refresh_rate(num); 
                 }
                 else if(c == '\n') {
-                    if(stod(num) >= 0.01) refresh_rate = stod(num);
+                    if(stod(num) >= 0.1) refresh_rate = stod(num);
                     break;
                 }
                 else break;
@@ -233,10 +290,14 @@ void main_window::show() {
             wrefresh(refresh_rate_win);
         }
         else if(c == 'q') break;
-        timeout(refresh_rate*1000);
+
+        if(c != KEY_RIGHT and c != KEY_LEFT and c != KEY_DOWN and c != KEY_UP) timeout(refresh_rate*1000);
+        else timeout(0);
     }
 }
 
 main_window::~main_window() {
     endwin();
+    delete procs;
+    delete stats;
 }

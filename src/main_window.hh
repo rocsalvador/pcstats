@@ -2,6 +2,8 @@
 #define MAIN_WINDOW_HH
 
 #include "pcstats.hh"
+#include "processes.hh"
+
 #include <cstdlib>
 #include <list>
 #include <ncurses.h>
@@ -11,22 +13,32 @@ class main_window {
 private:
     //Private attributes
     
+    int showedWin;
+
+    int nWins;
+
     WINDOW* cpu_usage_win;
     WINDOW* ram_usage_win;
     WINDOW* core_usage_win;
     WINDOW* core_temps_win;
     WINDOW* core_freq_win;
     WINDOW* refresh_rate_win;
-    
-    int max_stdsrc_height, max_stdsrc_width;
 
-    int core_wins_width;
+    WINDOW* procsWin;
     
-    list<int> cpu_usage_history, ram_usage_history;
+    unsigned int max_stdsrc_height, max_stdsrc_width;
+
+    unsigned int core_wins_width;
+    
+    list<unsigned int> cpu_usage_history, ram_usage_history;
     
     double refresh_rate;
     
     pcstats *stats;
+
+    processes *procs;
+
+    int procOffset;
 
     
     //Private functions
@@ -46,12 +58,16 @@ private:
     void print_core_freq();
     
     void print_all_win();
+
+    void printProcWin();
     
     void refresh_all_win();
     
     void set_refresh_rate(string refresh_rate);
     
-    void resize();
+    void resizeStatsWin();
+
+    void resizeProcsWin();
     
 public:
     main_window(const double& refresh_rate);
