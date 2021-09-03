@@ -31,7 +31,19 @@ int processes::getProcThreads(int i) const
     return it->second.threads;
 }
 
+int processes::getProcIndex(string procName) const
+{
+    auto it = procsInfo.find(procName);
+    if(it != procsInfo.end()) return distance(procsInfo.begin(), it);
+    else return -1;
+}
 
+int processes::getProcPid(int i) const
+{
+    auto it = procsInfo.begin();
+    for(int j = 0; j < i; ++j) ++it;
+    return it->second.pid;
+}
 
 void processes::update()
 {
@@ -48,14 +60,16 @@ void processes::update()
             procStatusFile.open(fileDir + "/status");
             if(procStatusFile.is_open()) {
                 string procName, state, aux;
-                int threads;
+                int threads, pid;
                 procStatusFile >> aux >> procName;
                 while(procStatusFile >> aux and aux != "State:");
                 procStatusFile >> state;
+                while(procStatusFile >> aux and aux != "Pid:");
+                procStatusFile >> pid;
                 while(procStatusFile >> aux and aux != "Threads:");
                 procStatusFile >> aux;
                 threads = stoi(aux);
-                procsInfo.insert({procName, {state, threads}});
+                procsInfo.insert({procName, {state, threads, pid}});
             }
         }
     }

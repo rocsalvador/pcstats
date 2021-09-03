@@ -12,6 +12,7 @@ private:
     struct process {
         string state;
         int threads;
+        int pid;
     };
 
     map<string, process> procsInfo;
@@ -27,6 +28,10 @@ public:
     string getProcState(int i) const;
 
     int getProcThreads(int i) const;
+
+    int getProcPid(int i) const;
+
+    int getProcIndex(string procName) const;
 
     void update();
 };
