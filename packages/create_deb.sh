@@ -26,7 +26,7 @@ Exec=/usr/bin/pcstats
 Icon=utilities-system-monitor
 Categories=System;"  > pcstats_deb/usr/share/applications/pcstats.desktop
 
-make -C ../src
+make -j8 -C ../src
 cp ../src/pcstats pcstats_deb/usr/bin/
 
 dpkg --build pcstats_deb/
