@@ -2,6 +2,7 @@ flags=-std=c++17 -O2 -Wall
 
 pcstats: main.o pcstats.o processes.o main_window.o
 	g++ $(flags) -o pcstats main.o pcstats.o processes.o main_window.o -lncurses
+	rm *.o
 
 pcstats.o: pcstats.cc
 	g++ $(flags) -c pcstats.cc
@@ -24,5 +25,4 @@ uninstall:
 	sudo rm /usr/share/applications/pcstats.desktop
 
 clean:
-	rm *.o
 	rm pcstats
