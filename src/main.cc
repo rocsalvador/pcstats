@@ -1,4 +1,4 @@
-#include "main_window.hh"
+#include "mainwindow.hh"
 
 void usage() {
     cout << "Usage:" << endl;

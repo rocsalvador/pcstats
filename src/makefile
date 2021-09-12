@@ -1,7 +1,7 @@
 flags=-std=c++17 -O2 -Wall
 
-pcstats: main.o pcstats.o processes.o main_window.o
-	g++ $(flags) -o pcstats main.o pcstats.o processes.o main_window.o -lncurses
+pcstats: main.o pcstats.o processes.o mainwindow.o
+	g++ $(flags) -o pcstats main.o pcstats.o processes.o mainwindow.o -lncurses
 	rm *.o
 
 pcstats.o: pcstats.cc
@@ -10,8 +10,8 @@ pcstats.o: pcstats.cc
 processes.o:
 	g++ $(flags) -c processes.cc
 
-main_window.o: main_window.cc
-	g++ $(flags) -c main_window.cc
+mainwindow.o: mainwindow.cc
+	g++ $(flags) -c mainwindow.cc
 
 main.o: main.cc
 	g++ $(flags) -c main.cc

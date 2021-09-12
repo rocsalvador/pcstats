@@ -1,4 +1,4 @@
-#include "main_window.hh"
+#include "mainwindow.hh"
 #include "pcstats.hh"
 #include "processes.hh"
 #include <curses.h>
@@ -253,18 +253,20 @@ void main_window::show() {
     timeout(100);
     while((c = getch())) {
         if(c == -1) {
-            if(showedWin == 0) {
-                stats->update_stats();
-                print_all_win();
-                refresh_all_win();
-            }
-            else if(showedWin == 1) {
-                procs->update();
-                foundProc = procs->getProcIndex(procName) != -1;
-                if(foundProc) foundProcOffset = procs->getProcIndex(procName);
+            switch(showedWin) {
+                case 0:
+                    stats->update_stats();
+                    print_all_win();
+                    refresh_all_win();
+                    break;
+                case 1:
+                    procs->update();
+                    foundProc = procs->getProcIndex(procName) != -1;
+                    if(foundProc) foundProcOffset = procs->getProcIndex(procName);
 
-                printProcWin();
-                wrefresh(procsWin);
+                    printProcWin();
+                    wrefresh(procsWin);
+                    break;
             }
         }
         else if(c == KEY_RESIZE) {
