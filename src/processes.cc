@@ -47,6 +47,7 @@ int processes::getProcPid(int i) const
 
 void processes::update()
 {
+    procsInfo.clear();
     for(const auto file : filesystem::directory_iterator("/proc")) {
         string fileDir{file.path().u8string()};
         string fileName = fileDir;
