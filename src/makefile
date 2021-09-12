@@ -18,11 +18,9 @@ main.o: main.cc
 
 install: pcstats
 	sudo cp pcstats /usr/bin
-	sudo cp ../packages/pcstats.desktop /usr/share/applications
 
 uninstall:
 	sudo rm /usr/bin/pcstats
-	sudo rm /usr/share/applications/pcstats.desktop
 
 clean:
 	rm pcstats
