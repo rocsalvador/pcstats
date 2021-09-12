@@ -25,6 +25,7 @@ private:
     WINDOW* refresh_rate_win;
 
     WINDOW* procsWin;
+    WINDOW* procSearchWin;
     
     unsigned int max_stdsrc_height, max_stdsrc_width;
 
@@ -39,6 +40,12 @@ private:
     processes *procs;
 
     int procOffset;
+
+    bool foundProc;
+
+    int foundProcOffset;
+
+    string procName;
 
     
     //Private functions

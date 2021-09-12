@@ -16,6 +16,12 @@ main_window::main_window(const double& refresh_rate) {
 
     procOffset = 0;
 
+    foundProc = false;
+
+    foundProcOffset = -1;
+
+    procName = "";
+
     // Init curses screen
     initscr();
     noecho();
@@ -148,14 +154,24 @@ void main_window::resizeProcsWin()
 {
     getmaxyx(stdscr, max_stdsrc_height, max_stdsrc_width);
     procsWin = newwin(max_stdsrc_height-1, max_stdsrc_width, 0, 0);
+    procSearchWin = newwin(1, max_stdsrc_width-max_stdsrc_width/2, max_stdsrc_height-1, max_stdsrc_width/2);
+    refresh_rate_win = newwin(1, max_stdsrc_width/2, max_stdsrc_height-1, 0);
     box(procsWin, 0, 0);
-    wmove(procsWin, 0, 30), wprintw(procsWin, "PID");
-    wmove(procsWin, 0, 40), wprintw(procsWin, "STATE");
-    wmove(procsWin, 0, 48), wprintw(procsWin, "THREADS");
+    int k = (max_stdsrc_width-9)/3;
+    wmove(procsWin, 0, k), wprintw(procsWin, "PID");
+    wmove(procsWin, 0, k*2), wprintw(procsWin, "STATE");
+    wmove(procsWin, 0, k*3), wprintw(procsWin, "THREADS");
 
-    refresh_rate_win = newwin(1, max_stdsrc_width, max_stdsrc_height-1, 0);
     wprintw(refresh_rate_win, "Refreshing every %.2f seconds", refresh_rate);
     wrefresh(refresh_rate_win);
+
+    int maxSearchWinWidth = getmaxx(procSearchWin);
+    wclear(procSearchWin);
+    wmove(procSearchWin, 0, maxSearchWinWidth-15);
+    wattron(procSearchWin, A_BOLD);
+    wprintw(procSearchWin, "Type to search");
+    wattroff(procSearchWin, A_BOLD);
+    wrefresh(procSearchWin);
 }
 
 void main_window::printProcWin()
@@ -164,11 +180,18 @@ void main_window::printProcWin()
     getmaxyx(stdscr, max_stdsrc_height, max_stdsrc_width);
 //     wmove(procsWin, 1, max_stdsrc_width-4);
 //     wprintw(procsWin, "%d", procs->getNProcs());
-    for(int i = 0; i < max_stdsrc_height-3 and i+procOffset < procs->getNProcs(); ++i) {
+    int k = (max_stdsrc_width-9)/3;
+    for(int i = 0; i < int(max_stdsrc_height-3) and i+procOffset < procs->getNProcs(); ++i) {
         wmove(procsWin, i+1, 1);
+        if(foundProc and procOffset+i == foundProcOffset) wattron(procsWin, A_STANDOUT);
         wprintw(procsWin, "%s", procs->getProcName(i+procOffset).c_str());
-        wmove(procsWin, i+1, 30);
-        wprintw(procsWin, "%d\t%s\t%d", procs->getProcPid(i+procOffset), procs->getProcState(i+procOffset).c_str(), procs->getProcThreads(i+procOffset));
+        wmove(procsWin, i+1, k);
+        wprintw(procsWin, "%d", procs->getProcPid(i+procOffset));
+        wmove(procsWin, i+1, k*2);
+        wprintw(procsWin, "%s", procs->getProcState(i+procOffset).c_str());
+        wmove(procsWin, i+1, k*3);
+        wprintw(procsWin, "%d", procs->getProcThreads(i+procOffset));
+        wattroff(procsWin, A_STANDOUT);
     }
 }
 
@@ -237,6 +260,9 @@ void main_window::show() {
             }
             else if(showedWin == 1) {
                 procs->update();
+                foundProc = procs->getProcIndex(procName) != -1;
+                if(foundProc) foundProcOffset = procs->getProcIndex(procName);
+
                 printProcWin();
                 wrefresh(procsWin);
             }
@@ -247,11 +273,25 @@ void main_window::show() {
         }
         else if(c == KEY_RIGHT) {
             if(showedWin < nWins-1) ++showedWin;
-            if(showedWin == 1) resizeProcsWin();
+            if(showedWin == 1) {
+                procs->update();
+                foundProc = procs->getProcIndex(procName) != -1;
+                if(foundProc) foundProcOffset = procs->getProcIndex(procName);
+
+                resizeProcsWin();
+                printProcWin();
+                wrefresh(procsWin);
+            }
         }
         else if(c == KEY_LEFT) {
-            if(showedWin > 0) --showedWin;
-            if(showedWin == 0) resizeStatsWin();
+            if(showedWin > 0) {
+                --showedWin;
+                if(showedWin == 0) {
+                    resizeStatsWin();
+                    print_all_win();
+                    refresh_all_win();
+                }
+            }
         }
         else if(c >= '0' and c <= '9') {
             int decimal_size = 0;
@@ -289,53 +329,60 @@ void main_window::show() {
 
         if(showedWin == 1) {
             if(c == KEY_UP) {
-                if(procOffset > 0) --procOffset;
+                if(procOffset > 0) {
+                    --procOffset;
+                    printProcWin();
+                    wrefresh(procsWin);
+                }
             }
             else if(c == KEY_DOWN) {
-                if(procOffset < procs->getNProcs()-1) ++procOffset;
+                if(procOffset < procs->getNProcs()-1) {
+                    ++procOffset;
+                    printProcWin();
+                    wrefresh(procsWin);
+                }
             }
             else if(c >= 33 and c <= 126) {
-                getmaxyx(stdscr, max_stdsrc_height, max_stdsrc_width);
-                string procName;
+                int maxSearchWinWidth = getmaxx(procSearchWin);
+                procName = "";
                 procName.push_back(c);
-                int i = 1;
-                wmove(procsWin, 1, max_stdsrc_width-1-i);
-                wprintw(procsWin, "%s", procName.c_str());
-                wrefresh(procsWin);
+                wclear(procSearchWin);
+                wmove(procSearchWin, 0, maxSearchWinWidth-1-procName.size());
+                wprintw(procSearchWin, "%s", procName.c_str());
+                wrefresh(procSearchWin);
                 timeout(3000);
                 while((c = getch()))
                 {
                     if(c == KEY_ENTER) break;
-                    else if(c >= 33 and c <= 126 or c == KEY_BACKSPACE) {
+                    else if((c >= 33 and c <= 126) or c == KEY_BACKSPACE) {
                         if(c == KEY_BACKSPACE) {
-                            if(i > 0) {
-                                wmove(procsWin, 1, max_stdsrc_width-1-i);
-                                wprintw(procsWin, " ");
-                                --i;
+                            if(procName.size() > 0) {
                                 procName.pop_back();
+                                wmove(procSearchWin, 0, maxSearchWinWidth-procName.size());
+                                wprintw(procSearchWin, " ");
                             }
                         }
-                        else {
-                            ++i;
-                            procName.push_back(c);
-                        }
-                        wmove(procsWin, 1, max_stdsrc_width-1-i);
-                        wprintw(procsWin, "%s", procName.c_str());
-                        wrefresh(procsWin);
+                        else procName.push_back(c);
+                        wmove(procSearchWin, 0, maxSearchWinWidth-1-procName.size());
+                        wprintw(procSearchWin, "%s", procName.c_str());
+                        wrefresh(procSearchWin);
                     }
                     else break;
                 }
 
-                if(procs->getProcIndex(procName) != -1) procOffset = procs->getProcIndex(procName);
-                else {
-                    wmove(procsWin, 1, max_stdsrc_width-18-procName.size());
-                    wprintw(procsWin, "No process named %s", procName.c_str());
+                foundProc = procs->getProcIndex(procName) != -1;
+                if(foundProc) {
+                    procOffset = foundProcOffset = procs->getProcIndex(procName);
+                    printProcWin();
                     wrefresh(procsWin);
+                }
+                else {
+                    wmove(procSearchWin, 0, maxSearchWinWidth-18-procName.size());
+                    wprintw(procSearchWin, "No process named %s", procName.c_str());
+                    wrefresh(procSearchWin);
                 }
             }
         }
-
-        if(c == KEY_RIGHT or c == KEY_LEFT or (c == KEY_DOWN and showedWin == 1) or (c == KEY_UP and showedWin == 1)) timeout(0);
         else timeout(refresh_rate*1000);
     }
 }
