@@ -70,7 +70,18 @@ void processes::update()
                 while(procStatusFile >> aux and aux != "Threads:");
                 procStatusFile >> aux;
                 threads = stoi(aux);
-                procsInfo.insert({procName, {state, threads, pid}});
+                if(procsInfo.find(procName) == procsInfo.end()) {
+                    procsInfo.insert({procName, {state, threads, pid}});
+                }
+                else {
+                    string aux = procName + "(1)";
+                    int i = 2;
+                    while(procsInfo.find(aux) != procsInfo.end()) {
+                        aux = procName + "(" + to_string(i) + ")";
+                        ++i;
+                    }
+                    procsInfo.insert({aux, {state, threads, pid}});
+                }
             }
         }
     }
