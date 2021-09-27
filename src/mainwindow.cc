@@ -1,7 +1,8 @@
 #include "mainwindow.hh"
 #include "pcstats.hh"
 #include "processes.hh"
-#include <curses.h>
+
+#include <signal.h>
 
 main_window::main_window(const double& refresh_rate) {
     stats = new pcstats;
@@ -384,8 +385,21 @@ void main_window::show() {
                     wrefresh(procSearchWin);
                 }
             }
+            else if(c == (0x1f & 'k') and foundProc) {
+                int maxSearchWinWidth = getmaxx(procSearchWin);
+                int ret = kill(procs->getProcPid(procs->getProcIndex(procName)), SIGKILL);
+                if(ret == 0) {
+                    wmove(procSearchWin, 0, maxSearchWinWidth-16-procName.size());
+                    wprintw(procSearchWin, "Process %s killed", procName.c_str());
+                }
+                else {
+                    wmove(procSearchWin, 0, maxSearchWinWidth-16-procName.size());
+                    wprintw(procSearchWin, "Unable to kill %s", procName.c_str());
+                }
+                wrefresh(procSearchWin);
+            }
         }
-        else timeout(refresh_rate*1000);
+        timeout(refresh_rate*1000);
     }
 }
 
