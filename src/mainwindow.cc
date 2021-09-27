@@ -361,8 +361,7 @@ void main_window::show() {
                         if(c == KEY_BACKSPACE) {
                             if(procName.size() > 0) {
                                 procName.pop_back();
-                                wmove(procSearchWin, 0, maxSearchWinWidth-procName.size());
-                                wprintw(procSearchWin, " ");
+                                wclear(procSearchWin);
                             }
                         }
                         else procName.push_back(c);
