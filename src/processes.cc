@@ -74,7 +74,7 @@ void processes::update()
                     procsInfo.insert({procName, {state, threads, pid}});
                 }
                 else {
-                    string aux = procName + "(1)";
+                    string aux = procName + " (1)";
                     int i = 2;
                     while(procsInfo.find(aux) != procsInfo.end()) {
                         aux = procName + "(" + to_string(i) + ")";
