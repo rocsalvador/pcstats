@@ -388,8 +388,8 @@ void main_window::show() {
                 int maxSearchWinWidth = getmaxx(procSearchWin);
                 int ret = kill(procs->getProcPid(procs->getProcIndex(procName)), SIGKILL);
                 if(ret == 0) {
-                    wmove(procSearchWin, 0, maxSearchWinWidth-16-procName.size());
-                    wprintw(procSearchWin, "Process %s killed", procName.c_str());
+                    wmove(procSearchWin, 0, maxSearchWinWidth-20-procName.size());
+                    wprintw(procSearchWin, "Terminated process %s", procName.c_str());
                 }
                 else {
                     wmove(procSearchWin, 0, maxSearchWinWidth-16-procName.size());
