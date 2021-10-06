@@ -2,7 +2,7 @@
 
 processes::processes()
 {
-
+    
 }
 
 int processes::getNProcs() const
@@ -45,8 +45,24 @@ int processes::getProcPid(int i) const
     return it->second.pid;
 }
 
+double processes::getReadKB(int i) const
+{
+    auto it = procsInfo.begin();
+    for(int j = 0; j < i; ++j) ++it;
+    return it->second.readKB - it->second.lastReadKB;
+}
+
+double processes::getWriteKB(int i) const
+{
+    auto it = procsInfo.begin();
+    for(int j = 0; j < i; ++j) ++it;
+    return it->second.writeKB - it->second.lastWriteKB;
+}
+
+
 void processes::update()
 {
+    map<string, process> auxMap = procsInfo;
     procsInfo.clear();
     for(const auto file : filesystem::directory_iterator("/proc")) {
         string fileDir{file.path().u8string()};
@@ -70,6 +86,21 @@ void processes::update()
                 while(procStatusFile >> aux and aux != "Threads:");
                 procStatusFile >> aux;
                 threads = stoi(aux);
+                
+                ifstream procIOFile;
+                procIOFile.open(fileDir + "/io");
+                
+                double readKB = 0, writeKB = 0;
+                if(procIOFile.is_open()) {
+                    string aux;
+                    procIOFile >> aux;
+                    procIOFile >> readKB;
+                    readKB /= 1024;
+                    procIOFile >> aux;
+                    procIOFile >> writeKB;
+                    writeKB /= 1024;
+                }
+                
                 if(procsInfo.find(procName) != procsInfo.end()) {
                     string aux = procName + "(1)";
                     int i = 2;
@@ -79,7 +110,16 @@ void processes::update()
                     }
                     procName = aux;
                 }
-                procsInfo.insert({procName, {state, threads, pid}});
+                
+                double lastReadKB = 0, lastWriteKB = 0;
+                auto it = auxMap.find(procName);
+                if(it != auxMap.end()) {
+                    lastReadKB = it->second.readKB;
+                    lastWriteKB = it->second.writeKB;
+                }
+                
+                
+                procsInfo.insert({procName, {state, threads, pid, writeKB, readKB, lastWriteKB, lastReadKB}});
             }
         }
     }

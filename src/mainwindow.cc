@@ -158,10 +158,12 @@ void main_window::resizeProcsWin()
     procSearchWin = newwin(1, max_stdsrc_width-max_stdsrc_width/2, max_stdsrc_height-1, max_stdsrc_width/2);
     refresh_rate_win = newwin(1, max_stdsrc_width/2, max_stdsrc_height-1, 0);
     box(procsWin, 0, 0);
-    int k = (max_stdsrc_width-9)/3;
+    int k = (max_stdsrc_width-13)/5;
     wmove(procsWin, 0, k), wprintw(procsWin, "PID");
     wmove(procsWin, 0, k*2), wprintw(procsWin, "STATE");
     wmove(procsWin, 0, k*3), wprintw(procsWin, "THREADS");
+    wmove(procsWin, 0, k*4), wprintw(procsWin, "READ");
+    wmove(procsWin, 0, k*5), wprintw(procsWin, "WRITE");
 
     wprintw(refresh_rate_win, "Refreshing every %.2f seconds", refresh_rate);
     wrefresh(refresh_rate_win);
@@ -181,7 +183,7 @@ void main_window::printProcWin()
     getmaxyx(stdscr, max_stdsrc_height, max_stdsrc_width);
 //     wmove(procsWin, 1, max_stdsrc_width-4);
 //     wprintw(procsWin, "%d", procs->getNProcs());
-    int k = (max_stdsrc_width-9)/3;
+    int k = (max_stdsrc_width-13)/5;
     for(int i = 0; i < int(max_stdsrc_height-3) and i+procOffset < procs->getNProcs(); ++i) {
         wmove(procsWin, i+1, 1);
         if(foundProc and procOffset+i == foundProcOffset) wattron(procsWin, A_STANDOUT);
@@ -192,6 +194,17 @@ void main_window::printProcWin()
         wprintw(procsWin, "%s", procs->getProcState(i+procOffset).c_str());
         wmove(procsWin, i+1, k*3);
         wprintw(procsWin, "%d", procs->getProcThreads(i+procOffset));
+        
+        wmove(procsWin, i+1, k*4);
+        double readKB = procs->getReadKB(i+procOffset);
+        if(readKB > 1024) wprintw(procsWin, "%.2f MB/s", readKB/(refresh_rate*1024));
+        else wprintw(procsWin, "%.2f KB/s", readKB/refresh_rate);
+        
+        wmove(procsWin, i+1, k*5);
+        double writeKB = procs->getWriteKB(i+procOffset);
+        if(writeKB > 1024) wprintw(procsWin, "%.2f MB/s", writeKB/(refresh_rate*1024));
+        else wprintw(procsWin, "%.2f KB/s", writeKB/refresh_rate);
+        
         wattroff(procsWin, A_STANDOUT);
     }
 }

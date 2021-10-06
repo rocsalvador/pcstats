@@ -13,11 +13,16 @@ private:
         string state;
         int threads;
         int pid;
+        double readKB;
+        double writeKB;
+        double lastWriteKB;
+        double lastReadKB;
     };
 
     map<string, process> procsInfo;
 
     int nProcs;
+
 public:
     processes();
 
@@ -30,6 +35,10 @@ public:
     int getProcThreads(int i) const;
 
     int getProcPid(int i) const;
+    
+    double getWriteKB(int i) const;
+    
+    double getReadKB(int i) const;
 
     int getProcIndex(string procName) const;
 
