@@ -1,35 +1,18 @@
 #include "mainwindow.hh"
 #include "pcstats.hh"
-#include "processes.hh"
-
-#include <signal.h>
+#include <curses.h>
 
 main_window::main_window(const double& refresh_rate) {
     stats = new pcstats;
-
-    procs = new processes;
     
     this->refresh_rate = refresh_rate;
-
-    showedWin = 0;
-
-    nWins = 2;
-
-    procOffset = 0;
-
-    foundProc = false;
-
-    foundProcOffset = -1;
-
-    procName = "";
 
     // Init curses screen
     initscr();
     noecho();
-    keypad(stdscr, true);
     curs_set(0);
     maximum_win_sizes();
-    resizeStatsWin();
+    resize();
 }
 
 void main_window::maximum_win_sizes() {
@@ -110,7 +93,7 @@ void main_window::print_ram_graphic() {
     wprintw(ram_usage_win, "[%.2f/%.2f GB]", stats->get_ram_usage()/100*stats->get_total_ram(), stats->get_total_ram());
 }
 
-void main_window::resizeStatsWin() {
+void main_window::resize() {
     cpu_usage_history.clear();
     ram_usage_history.clear();
         
@@ -149,64 +132,6 @@ void main_window::resizeStatsWin() {
     
     refresh_rate_win = newwin(1, max_stdsrc_width-core_wins_width, max_stdsrc_height-1, 0);
     wprintw(refresh_rate_win, "Refreshing every %.2f seconds", refresh_rate);
-}
-
-void main_window::resizeProcsWin()
-{
-    getmaxyx(stdscr, max_stdsrc_height, max_stdsrc_width);
-    procsWin = newwin(max_stdsrc_height-1, max_stdsrc_width, 0, 0);
-    procSearchWin = newwin(1, max_stdsrc_width-max_stdsrc_width/2, max_stdsrc_height-1, max_stdsrc_width/2);
-    refresh_rate_win = newwin(1, max_stdsrc_width/2, max_stdsrc_height-1, 0);
-    box(procsWin, 0, 0);
-    int k = (max_stdsrc_width-13)/5;
-    wmove(procsWin, 0, k), wprintw(procsWin, "PID");
-    wmove(procsWin, 0, k*2), wprintw(procsWin, "STATE");
-    wmove(procsWin, 0, k*3), wprintw(procsWin, "THREADS");
-    wmove(procsWin, 0, k*4), wprintw(procsWin, "READ");
-    wmove(procsWin, 0, k*5), wprintw(procsWin, "WRITE");
-
-    wprintw(refresh_rate_win, "Refreshing every %.2f seconds", refresh_rate);
-    wrefresh(refresh_rate_win);
-
-    int maxSearchWinWidth = getmaxx(procSearchWin);
-    wclear(procSearchWin);
-    wmove(procSearchWin, 0, maxSearchWinWidth-15);
-    wattron(procSearchWin, A_BOLD);
-    wprintw(procSearchWin, "Type to search");
-    wattroff(procSearchWin, A_BOLD);
-    wrefresh(procSearchWin);
-}
-
-void main_window::printProcWin()
-{
-    clear_box(procsWin);
-    getmaxyx(stdscr, max_stdsrc_height, max_stdsrc_width);
-//     wmove(procsWin, 1, max_stdsrc_width-4);
-//     wprintw(procsWin, "%d", procs->getNProcs());
-    int k = (max_stdsrc_width-13)/5;
-    for(int i = 0; i < int(max_stdsrc_height-3) and i+procOffset < procs->getNProcs(); ++i) {
-        wmove(procsWin, i+1, 1);
-        if(foundProc and procOffset+i == foundProcOffset) wattron(procsWin, A_STANDOUT);
-        wprintw(procsWin, "%s", procs->getProcName(i+procOffset).c_str());
-        wmove(procsWin, i+1, k);
-        wprintw(procsWin, "%d", procs->getProcPid(i+procOffset));
-        wmove(procsWin, i+1, k*2);
-        wprintw(procsWin, "%s", procs->getProcState(i+procOffset).c_str());
-        wmove(procsWin, i+1, k*3);
-        wprintw(procsWin, "%d", procs->getProcThreads(i+procOffset));
-        
-        wmove(procsWin, i+1, k*4);
-        double readKB = procs->getReadKB(i+procOffset);
-        if(readKB > 1024) wprintw(procsWin, "%.2f MB/s", readKB/(refresh_rate*1024));
-        else wprintw(procsWin, "%.2f KB/s", readKB/refresh_rate);
-        
-        wmove(procsWin, i+1, k*5);
-        double writeKB = procs->getWriteKB(i+procOffset);
-        if(writeKB > 1024) wprintw(procsWin, "%.2f MB/s", writeKB/(refresh_rate*1024));
-        else wprintw(procsWin, "%.2f KB/s", writeKB/refresh_rate);
-        
-        wattroff(procsWin, A_STANDOUT);
-    }
 }
 
 void main_window::set_refresh_rate(string refresh_rate) {
@@ -267,47 +192,13 @@ void main_window::show() {
     timeout(100);
     while((c = getch())) {
         if(c == -1) {
-            switch(showedWin) {
-                case 0:
-                    stats->update_stats();
-                    print_all_win();
-                    refresh_all_win();
-                    break;
-                case 1:
-                    procs->update();
-                    foundProc = procs->getProcIndex(procName) != -1;
-                    if(foundProc) foundProcOffset = procs->getProcIndex(procName);
-
-                    printProcWin();
-                    wrefresh(procsWin);
-                    break;
-            }
+            stats->update_stats();
+            print_all_win();
+            refresh_all_win();
         }
-        else if(c == KEY_RESIZE) {
-            if(showedWin == 0) resizeStatsWin();
-            else if(showedWin == 1) resizeProcsWin();
-        }
-        else if(c == KEY_RIGHT) {
-            if(showedWin < nWins-1) ++showedWin;
-            if(showedWin == 1) {
-                procs->update();
-                foundProc = procs->getProcIndex(procName) != -1;
-                if(foundProc) foundProcOffset = procs->getProcIndex(procName);
-
-                resizeProcsWin();
-                printProcWin();
-                wrefresh(procsWin);
-            }
-        }
-        else if(c == KEY_LEFT) {
-            if(showedWin > 0) {
-                --showedWin;
-                if(showedWin == 0) {
-                    resizeStatsWin();
-                    print_all_win();
-                    refresh_all_win();
-                }
-            }
+        
+        if(c == KEY_RESIZE) {
+            resize();
         }
         else if(c >= '0' and c <= '9') {
             int decimal_size = 0;
@@ -327,14 +218,14 @@ void main_window::show() {
                 }
                 else if(c >= '0' and c <= '9') {
                     num.push_back(c);
-                    set_refresh_rate(num);
+                    set_refresh_rate(num); 
                 }
                 else if(c == '\n') {
-                    if(stod(num) >= 0.1) refresh_rate = stod(num);
+                    if(stod(num) >= 0.01) refresh_rate = stod(num);
                     break;
                 }
                 else break;
-
+                
                 if(point) ++decimal_size;
             }
             wclear(refresh_rate_win);
@@ -342,81 +233,10 @@ void main_window::show() {
             wrefresh(refresh_rate_win);
         }
         else if(c == 'q') break;
-
-        if(showedWin == 1) {
-            if(c == KEY_UP) {
-                if(procOffset > 0) {
-                    --procOffset;
-                    printProcWin();
-                    wrefresh(procsWin);
-                }
-            }
-            else if(c == KEY_DOWN) {
-                if(procOffset < procs->getNProcs()-1) {
-                    ++procOffset;
-                    printProcWin();
-                    wrefresh(procsWin);
-                }
-            }
-            else if(c >= 33 and c <= 126) {
-                int maxSearchWinWidth = getmaxx(procSearchWin);
-                procName = "";
-                procName.push_back(c);
-                wclear(procSearchWin);
-                wmove(procSearchWin, 0, maxSearchWinWidth-1-procName.size());
-                wprintw(procSearchWin, "%s", procName.c_str());
-                wrefresh(procSearchWin);
-                timeout(3000);
-                while((c = getch()))
-                {
-                    if(c == KEY_ENTER) break;
-                    else if((c >= 33 and c <= 126) or c == KEY_BACKSPACE) {
-                        if(c == KEY_BACKSPACE) {
-                            if(procName.size() > 0) {
-                                procName.pop_back();
-                                wclear(procSearchWin);
-                            }
-                        }
-                        else procName.push_back(c);
-                        wmove(procSearchWin, 0, maxSearchWinWidth-1-procName.size());
-                        wprintw(procSearchWin, "%s", procName.c_str());
-                        wrefresh(procSearchWin);
-                    }
-                    else break;
-                }
-
-                foundProc = procs->getProcIndex(procName) != -1;
-                if(foundProc) {
-                    procOffset = foundProcOffset = procs->getProcIndex(procName);
-                    printProcWin();
-                    wrefresh(procsWin);
-                }
-                else {
-                    wmove(procSearchWin, 0, maxSearchWinWidth-18-procName.size());
-                    wprintw(procSearchWin, "No process named %s", procName.c_str());
-                    wrefresh(procSearchWin);
-                }
-            }
-            else if(c == (0x1f & 'k') and foundProc) {
-                int maxSearchWinWidth = getmaxx(procSearchWin);
-                int ret = kill(procs->getProcPid(procs->getProcIndex(procName)), SIGKILL);
-                if(ret == 0) {
-                    wmove(procSearchWin, 0, maxSearchWinWidth-20-procName.size());
-                    wprintw(procSearchWin, "Terminated process %s", procName.c_str());
-                }
-                else {
-                    wmove(procSearchWin, 0, maxSearchWinWidth-16-procName.size());
-                    wprintw(procSearchWin, "Unable to kill %s", procName.c_str());
-                }
-                wrefresh(procSearchWin);
-            }
-        }
         timeout(refresh_rate*1000);
     }
 }
 
 main_window::~main_window() {
     endwin();
-    delete procs;
-    delete stats;
 }

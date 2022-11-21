@@ -6,11 +6,11 @@ Download the [deb package](https://github.com/001roc20/pcstats/releases)
 
 Open a terminal in the download folder and run the following command:
 ```bash
-$ sudo dpkg -i pcstats.deb
+sudo dpkg -i pcstats.deb
 ```
 If you get a dependency error, run:
 ```bash
-$ sudo apt install -f
+sudo apt install -f
 ```
 ### Build from source
 Clone the repository and open a terminal in the src folder and run:
