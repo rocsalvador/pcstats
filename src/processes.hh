@@ -5,11 +5,13 @@
 #include <fstream>
 #include <map>
 #include <iostream>
+#include <vector>
 using namespace std;
 
 class processes {
 private:
     struct process {
+        string name;
         string state;
         int threads;
         int pid;
@@ -19,9 +21,8 @@ private:
         double lastReadKB;
     };
 
-    map<string, process> procsInfo;
-
-    int nProcs;
+    map<string, process*> procsNameMap;
+    map<int, process*> procsPidMap;
 
 public:
     processes();
@@ -41,6 +42,10 @@ public:
     double getReadKB(int i) const;
 
     int getProcIndex(string procName) const;
+
+    process getProcByPid(int pid) const;
+
+    process getProcByName(string name) const;
 
     void update();
 };

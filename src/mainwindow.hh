@@ -1,7 +1,8 @@
 #ifndef MAIN_WINDOW_HH
 #define MAIN_WINDOW_HH
 
-#include "pcstats.hh"
+#include "raminfo.hh"
+#include "cpuinfo.hh"
 #include <cstdlib>
 #include <list>
 #include <ncurses.h>
@@ -26,8 +27,9 @@ private:
     
     double refresh_rate;
     
-    pcstats *stats;
 
+    cpuinfo *cpuInfo;
+    raminfo *ramInfo;
     
     //Private functions
     

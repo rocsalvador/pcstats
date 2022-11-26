@@ -1,9 +1,10 @@
 #include "mainwindow.hh"
-#include "pcstats.hh"
+#include "raminfo.hh"
 #include <curses.h>
 
 main_window::main_window(const double& refresh_rate) {
-    stats = new pcstats;
+    cpuInfo = new cpuinfo();
+    ramInfo = new raminfo();
     
     this->refresh_rate = refresh_rate;
 
@@ -17,9 +18,9 @@ main_window::main_window(const double& refresh_rate) {
 
 void main_window::maximum_win_sizes() {
     core_wins_width = 17;   // |CPUxx: ---- MHz|
-    for(int i = 0; i < stats->cpu_sensors(); ++i) {
-        if(core_wins_width < stats->get_core_temp(i).first.size() + 10) 
-            core_wins_width = stats->get_core_temp(i).first.size() + 10;         
+    for(int i = 0; i < cpuInfo->cpu_sensors(); ++i) {
+        if(core_wins_width < cpuInfo->get_core_temp(i).first.size() + 10)
+            core_wins_width = cpuInfo->get_core_temp(i).first.size() + 10;
     }
 }
 
@@ -47,7 +48,7 @@ void main_window::refresh_all_win() {
 void main_window::print_cpu_graphic() {
     unsigned int max_win_height, max_win_width;
     getmaxyx(cpu_usage_win, max_win_height, max_win_width);
-    double cpu_usage = stats->get_core_usage(-1);
+    double cpu_usage = cpuInfo->get_core_usage(-1);
     int height = cpu_usage/100*(max_win_height-2);
     
     cpu_usage_history.push_back(height);
@@ -65,15 +66,15 @@ void main_window::print_cpu_graphic() {
     }
     
     wmove(cpu_usage_win, 0, max_stdsrc_width-core_wins_width-12);
-    if(cpu_usage == 100) wprintw(cpu_usage_win, "[%.2f%]", stats->get_core_usage(-1));
-    else if(cpu_usage >= 10) wprintw(cpu_usage_win, "[ %.2f%]", stats->get_core_usage(-1));
-    else wprintw(cpu_usage_win, "[  %.2f%]", stats->get_core_usage(-1));
+    if(cpu_usage == 100) wprintw(cpu_usage_win, "[%.2f]", cpuInfo->get_core_usage(-1));
+    else if(cpu_usage >= 10) wprintw(cpu_usage_win, "[ %.2f]", cpuInfo->get_core_usage(-1));
+    else wprintw(cpu_usage_win, "[  %.2f]", cpuInfo->get_core_usage(-1));
 }
 
 void main_window::print_ram_graphic() {
     unsigned int max_win_height, max_win_width;
     getmaxyx(ram_usage_win, max_win_height, max_win_width);
-    double ram_usage = stats->get_ram_usage();
+    double ram_usage = ramInfo->get_ram_usage();
     int height = ram_usage/100*(max_win_height-2);
     
     ram_usage_history.push_back(height);
@@ -90,7 +91,7 @@ void main_window::print_ram_graphic() {
         ++j;
     }
     wmove(ram_usage_win, 0, max_stdsrc_width-core_wins_width-17);
-    wprintw(ram_usage_win, "[%.2f/%.2f GB]", stats->get_ram_usage()/100*stats->get_total_ram(), stats->get_total_ram());
+    wprintw(ram_usage_win, "[%.2f/%.2f GB]", ramInfo->get_ram_usage()/100*ramInfo->get_total_ram(), ramInfo->get_total_ram());
 }
 
 void main_window::resize() {
@@ -110,13 +111,13 @@ void main_window::resize() {
     cpu_usage_win = newwin(cpu_usage_win_height, graphics_win_width, 0, 0);
     box(cpu_usage_win, 0, 0);
     wmove(cpu_usage_win, 0, 1), wprintw(cpu_usage_win, "CPU usage");
-    wmove(cpu_usage_win, 0, graphics_win_width-12), wprintw(cpu_usage_win, "[%.2f%]", stats->get_core_usage(-1));
+    wmove(cpu_usage_win, 0, graphics_win_width-12), wprintw(cpu_usage_win, "[%.2f]", cpuInfo->get_core_usage(-1));
     
     ram_usage_win = newwin(ram_usage_win_height, graphics_win_width, cpu_usage_win_height, 0);
     box(ram_usage_win, 0, 0);
     wmove(ram_usage_win, 0, 1), wprintw(ram_usage_win, "RAM usage");
     wmove(ram_usage_win, 0, graphics_win_width-17);
-    wprintw(ram_usage_win, "[%.2f/%.2f GB]", stats->get_ram_usage()/100*stats->get_total_ram(), stats->get_total_ram());
+    wprintw(ram_usage_win, "[%.2f/%.2f GB]", ramInfo->get_ram_usage()/100*ramInfo->get_total_ram(), ramInfo->get_total_ram());
     
     core_usage_win = newwin(core_usage_win_height, core_wins_width, 0, graphics_win_width);
     box(core_usage_win, 0, 0);
@@ -146,11 +147,11 @@ void main_window::print_core_usage() {
     int n;
     int max_win_height, max_win_width;
     getmaxyx(core_usage_win, max_win_height, max_win_width);
-    if(stats->cpu_cores() > max_win_height-2) n = max_win_height-2;
-    else n = stats->cpu_cores();
+    if(cpuInfo->cpu_cores() > max_win_height-2) n = max_win_height-2;
+    else n = cpuInfo->cpu_cores();
     for(int i = 0; i < n; ++i) {
         wmove(core_usage_win, i+1, 1);
-        wprintw(core_usage_win, "CPU%d: %.2f % %", i, stats->get_core_usage(i));
+        wprintw(core_usage_win, "CPU%d: %.2f % %", i, cpuInfo->get_core_usage(i));
     }
 }
 
@@ -159,11 +160,11 @@ void main_window::print_core_temps() {
     wrefresh(core_temps_win);
     int n;
     int max_win_height = getmaxy(core_temps_win);
-    if(stats->cpu_sensors() > max_win_height-2) n = max_win_height-2;
-    else n = stats->cpu_sensors();
+    if(cpuInfo->cpu_sensors() > max_win_height-2) n = max_win_height-2;
+    else n = cpuInfo->cpu_sensors();
     for(int i = 0; i < n; ++i) {
         wmove(core_temps_win, i+1, 1);
-        wprintw(core_temps_win, "%s: %d ºC", stats->get_core_temp(i).first.c_str(), stats->get_core_temp(i).second);
+        wprintw(core_temps_win, "%s: %d ºC", cpuInfo->get_core_temp(i).first.c_str(), cpuInfo->get_core_temp(i).second);
     }
 }
 
@@ -171,11 +172,11 @@ void main_window::print_core_freq() {
     clear_box(core_freq_win);
     int n;
     int max_win_height = getmaxy(core_freq_win);
-    if(stats->cpu_cores() > max_win_height-2) n = max_win_height-2;
-    else n = stats->cpu_cores();
+    if(cpuInfo->cpu_cores() > max_win_height-2) n = max_win_height-2;
+    else n = cpuInfo->cpu_cores();
     for(int i = 0; i < n; ++i) {
         wmove(core_freq_win, i+1, 1);
-        wprintw(core_freq_win, "CPU%d: %d MHz", i, int(stats->get_core_freq(i)));
+        wprintw(core_freq_win, "CPU%d: %d MHz", i, int(cpuInfo->get_core_freq(i)));
     }
 }
 
@@ -192,7 +193,8 @@ void main_window::show() {
     timeout(100);
     while((c = getch())) {
         if(c == -1) {
-            stats->update_stats();
+            cpuInfo->update_stats();
+            ramInfo->update_stats();
             print_all_win();
             refresh_all_win();
         }

@@ -7,64 +7,77 @@ processes::processes()
 
 int processes::getNProcs() const
 {
-    return nProcs;
+    return procsNameMap.size();
 }
 
 string processes::getProcName(int i) const
 {
-    auto it = procsInfo.begin();
+    auto it = procsNameMap.begin();
     for(int j = 0; j < i; ++j) ++it;
     return it->first;
 }
 
 string processes::getProcState(int i) const
 {
-    auto it = procsInfo.begin();
+    auto it = procsNameMap.begin();
     for(int j = 0; j < i; ++j) ++it;
-    return it->second.state;
+    return it->second->state;
 }
 
 int processes::getProcThreads(int i) const
 {
-    auto it = procsInfo.begin();
+    auto it = procsNameMap.begin();
     for(int j = 0; j < i; ++j) ++it;
-    return it->second.threads;
+    return it->second->threads;
 }
 
 int processes::getProcIndex(string procName) const
 {
-    auto it = procsInfo.find(procName);
-    if(it != procsInfo.end()) return distance(procsInfo.begin(), it);
+    auto it = procsNameMap.find(procName);
+    if(it != procsNameMap.end()) return distance(procsNameMap.begin(), it);
     else return -1;
 }
 
 int processes::getProcPid(int i) const
 {
-    auto it = procsInfo.begin();
+    auto it = procsNameMap.begin();
     for(int j = 0; j < i; ++j) ++it;
-    return it->second.pid;
+    return it->second->writeKB - it->second->lastWriteKB;
 }
 
 double processes::getReadKB(int i) const
 {
-    auto it = procsInfo.begin();
+    auto it = procsNameMap.begin();
     for(int j = 0; j < i; ++j) ++it;
-    return it->second.readKB - it->second.lastReadKB;
+    return it->second->readKB - it->second->lastReadKB;
 }
 
 double processes::getWriteKB(int i) const
 {
-    auto it = procsInfo.begin();
+    auto it = procsNameMap.begin();
     for(int j = 0; j < i; ++j) ++it;
-    return it->second.writeKB - it->second.lastWriteKB;
+    return it->second->writeKB - it->second->lastWriteKB;
 }
 
 
+processes::process processes::getProcByName(string name) const
+{
+    return *procsNameMap.find(name)->second;
+}
+
+processes::process processes::getProcByPid(int pid) const
+{
+    return *procsPidMap.find(pid)->second;
+}
+
 void processes::update()
 {
-    map<string, process> auxMap = procsInfo;
-    procsInfo.clear();
-    for(const auto file : filesystem::directory_iterator("/proc")) {
+    map<string, process*> auxNameMap = procsNameMap;
+    map<int, process*> auxPidMap = procsPidMap;
+
+    procsNameMap.clear();
+    procsPidMap.clear();
+    for(const auto& file : filesystem::directory_iterator("/proc")) {
         string fileDir{file.path().u8string()};
         string fileName = fileDir;
         fileName = fileName.erase(0, 6);
@@ -101,10 +114,10 @@ void processes::update()
                     writeKB /= 1024;
                 }
                 
-                if(procsInfo.find(procName) != procsInfo.end()) {
+                if(procsNameMap.find(procName) != procsNameMap.end()) {
                     string aux = procName + "(1)";
                     int i = 2;
-                    while(procsInfo.find(aux) != procsInfo.end()) {
+                    while(procsNameMap.find(aux) != procsNameMap.end()) {
                         aux = procName + "(" + to_string(i) + ")";
                         ++i;
                     }
@@ -112,16 +125,17 @@ void processes::update()
                 }
                 
                 double lastReadKB = 0, lastWriteKB = 0;
-                auto it = auxMap.find(procName);
-                if(it != auxMap.end()) {
-                    lastReadKB = it->second.readKB;
-                    lastWriteKB = it->second.writeKB;
+                auto it = auxNameMap.find(procName);
+                if(it != auxNameMap.end()) {
+                    lastReadKB = it->second->readKB;
+                    lastWriteKB = it->second->writeKB;
                 }
                 
-                
-                procsInfo.insert({procName, {state, threads, pid, writeKB, readKB, lastWriteKB, lastReadKB}});
+                process auxProc = {procName, state, threads, pid, writeKB, readKB, lastWriteKB, lastReadKB};
+                process *proc = &auxProc;
+                procsNameMap.insert({procName, proc});
+                procsPidMap.insert({pid, proc});
             }
         }
     }
-    nProcs = procsInfo.size();
 }
