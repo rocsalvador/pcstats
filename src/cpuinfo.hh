@@ -37,23 +37,23 @@ public:
 
     void updateCpuUsage();
 
-    void update_cpu_temp();
+    void updateCpuTemp();
 
-    void update_stats();
+    void updateStats();
 
-    string cpu_name() const;
+    string cpuName() const;
 
-    double get_core_usage(int core) const;
+    double getCoreUsage(int core) const;
 
-    pair<string,int> get_core_temp(int core) const;
+    pair<string,int> getCoreTemp(int core) const;
 
-    double get_core_freq(int core) const;
+    double getCoreFreq(int core) const;
 
-    int cpu_cores() const;
+    int cpuCores() const;
 
-    int cpu_sensors() const;
+    int cpuSensors() const;
 
-    void reset_saved_stats();
+    void resetSavedStats();
 };
 
 #endif

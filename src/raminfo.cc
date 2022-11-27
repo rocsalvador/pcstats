@@ -13,10 +13,10 @@ RamInfo::RamInfo() {
     file.close();
     totalRamd = totalRam/divisor;
 
-    reset_saved_stats();
+    resetSavedStats();
 }
 
-void RamInfo::update_ram_usage() {
+void RamInfo::updateRamUsage() {
     ifstream file;
     file.open("/proc/meminfo");
     if(not file.is_open()) {
@@ -51,19 +51,19 @@ void RamInfo::update_ram_usage() {
 }
 
 
-void RamInfo::update_stats() {
-    update_ram_usage();
+void RamInfo::updateStats() {
+    updateRamUsage();
 }
 
-double RamInfo::get_total_ram() const {
+double RamInfo::getTotalRam() const {
     return totalRamd;
 }
 
-double RamInfo::get_ram_usage() const {
+double RamInfo::getRamUsage() const {
     return ramUsage;
 }
 
-void RamInfo::reset_saved_stats() {
+void RamInfo::resetSavedStats() {
     avgUsage = 0, maxUsage = 0;
     usageCounter = 0;
 }

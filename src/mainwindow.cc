@@ -1,191 +1,191 @@
 #include "mainwindow.hh"
 #include <curses.h>
 
-MainWindow::MainWindow(const double& refresh_rate) {
+MainWindow::MainWindow(const double& refreshRate) {
     cpuInfo = new CpuInfo();
     ramInfo = new RamInfo();
     processInfo = new ProcessInfo();
     
-    this->refresh_rate = refresh_rate;
+    this->refreshRate = refreshRate;
 
     // Init curses screen
     initscr();
     noecho();
     curs_set(0);
-    maximum_win_sizes();
+    maximumWinSizes();
     resize();
 }
 
-void MainWindow::maximum_win_sizes() {
-    core_wins_width = 17;   // |CPUxx: ---- MHz|
-    for(int i = 0; i < cpuInfo->cpu_sensors(); ++i) {
-        if(core_wins_width < cpuInfo->get_core_temp(i).first.size() + 10)
-            core_wins_width = cpuInfo->get_core_temp(i).first.size() + 10;
+void MainWindow::maximumWinSizes() {
+    coreWinsWidth = 17;   // |CPUxx: ---- MHz|
+    for(int i = 0; i < cpuInfo->cpuSensors(); ++i) {
+        if(coreWinsWidth < cpuInfo->getCoreTemp(i).first.size() + 10)
+            coreWinsWidth = cpuInfo->getCoreTemp(i).first.size() + 10;
     }
 }
 
-void MainWindow::clear_box(WINDOW* win) {
-    int max_win_height, max_win_width;
-    getmaxyx(win, max_win_height, max_win_width);
-    for(int i = 1; i < max_win_height-1; ++i) {
+void MainWindow::clearBox(WINDOW* win) {
+    int maxWinHeight, maxWinWidth;
+    getmaxyx(win, maxWinHeight, maxWinWidth);
+    for(int i = 1; i < maxWinHeight-1; ++i) {
         wmove(win, i, 1);
         wclrtoeol(win);
-        wmove(win, i, max_win_width-1);
+        wmove(win, i, maxWinWidth-1);
         waddch(win, ACS_VLINE);
     }
 }
 
-void MainWindow::refresh_all_win() {
-    wrefresh(cpu_usage_win);
-    wrefresh(ram_usage_win);
-    wrefresh(core_usage_win);
-    wrefresh(core_temps_win);
-    wrefresh(core_freq_win);
-    wrefresh(refresh_rate_win);
+void MainWindow::refreshAllWin() {
+    wrefresh(cpuUsageWin);
+    wrefresh(ramUsageWin);
+    wrefresh(coreUsageWin);
+    wrefresh(coreTempsWin);
+    wrefresh(coreFreqWin);
+    wrefresh(refreshRateWin);
 }
 
 
-void MainWindow::print_cpu_graphic() {
-    unsigned int max_win_height, max_win_width;
-    getmaxyx(cpu_usage_win, max_win_height, max_win_width);
-    double cpu_usage = cpuInfo->get_core_usage(-1);
-    int height = cpu_usage/100*(max_win_height-2);
+void MainWindow::printCpuGraphic() {
+    unsigned int maxWinHeight, maxWinWidth;
+    getmaxyx(cpuUsageWin, maxWinHeight, maxWinWidth);
+    double cpu_usage = cpuInfo->getCoreUsage(-1);
+    int height = cpu_usage/100*(maxWinHeight-2);
     
-    cpu_usage_history.push_back(height);
-    if(max_win_width-1 == cpu_usage_history.size()) {
-        cpu_usage_history.pop_front();
-        clear_box(cpu_usage_win);
+    cpuUsageHistory.push_back(height);
+    if(maxWinWidth-1 == cpuUsageHistory.size()) {
+        cpuUsageHistory.pop_front();
+        clearBox(cpuUsageWin);
     }
     int j = 1;
-    for(int it : cpu_usage_history) {
+    for(int it : cpuUsageHistory) {
         for(int i = 0; i < it; ++i) {
-            wmove(cpu_usage_win, max_win_height-i-2, j);
-            waddch(cpu_usage_win, ACS_CKBOARD);
+            wmove(cpuUsageWin, maxWinHeight-i-2, j);
+            waddch(cpuUsageWin, ACS_CKBOARD);
         }
         ++j;
     }
     
-    wmove(cpu_usage_win, 0, max_stdsrc_width-core_wins_width-12);
-    if(cpu_usage == 100) wprintw(cpu_usage_win, "[%.2f]", cpuInfo->get_core_usage(-1));
-    else if(cpu_usage >= 10) wprintw(cpu_usage_win, "[ %.2f]", cpuInfo->get_core_usage(-1));
-    else wprintw(cpu_usage_win, "[  %.2f]", cpuInfo->get_core_usage(-1));
+    wmove(cpuUsageWin, 0, maxStdsrcWidth-coreWinsWidth-12);
+    if(cpu_usage == 100) wprintw(cpuUsageWin, "[%.2f]", cpuInfo->getCoreUsage(-1));
+    else if(cpu_usage >= 10) wprintw(cpuUsageWin, "[ %.2f]", cpuInfo->getCoreUsage(-1));
+    else wprintw(cpuUsageWin, "[  %.2f]", cpuInfo->getCoreUsage(-1));
 }
 
-void MainWindow::print_ram_graphic() {
-    unsigned int max_win_height, max_win_width;
-    getmaxyx(ram_usage_win, max_win_height, max_win_width);
-    double ram_usage = ramInfo->get_ram_usage();
-    int height = ram_usage/100*(max_win_height-2);
+void MainWindow::printRamGraphic() {
+    unsigned int maxWinHeight, maxWinWidth;
+    getmaxyx(ramUsageWin, maxWinHeight, maxWinWidth);
+    double ram_usage = ramInfo->getRamUsage();
+    int height = ram_usage/100*(maxWinHeight-2);
     
-    ram_usage_history.push_back(height);
-    if(max_win_width-1 == ram_usage_history.size()) {
-        ram_usage_history.pop_front();
-        clear_box(ram_usage_win);
+    ramUsageHistory.push_back(height);
+    if(maxWinWidth-1 == ramUsageHistory.size()) {
+        ramUsageHistory.pop_front();
+        clearBox(ramUsageWin);
     }
     int j = 1;
-    for(int it : ram_usage_history) {
+    for(int it : ramUsageHistory) {
         for(int i = 0; i < it; ++i) {
-            wmove(ram_usage_win, max_win_height-i-2, j);
-            waddch(ram_usage_win, ACS_CKBOARD);
+            wmove(ramUsageWin, maxWinHeight-i-2, j);
+            waddch(ramUsageWin, ACS_CKBOARD);
         }
         ++j;
     }
-    wmove(ram_usage_win, 0, max_stdsrc_width-core_wins_width-17);
-    wprintw(ram_usage_win, "[%.2f/%.2f GB]", ramInfo->get_ram_usage()/100*ramInfo->get_total_ram(), ramInfo->get_total_ram());
+    wmove(ramUsageWin, 0, maxStdsrcWidth-coreWinsWidth-17);
+    wprintw(ramUsageWin, "[%.2f/%.2f GB]", ramInfo->getRamUsage()/100*ramInfo->getTotalRam(), ramInfo->getTotalRam());
 }
 
 void MainWindow::resize() {
-    cpu_usage_history.clear();
-    ram_usage_history.clear();
+    cpuUsageHistory.clear();
+    ramUsageHistory.clear();
         
-    getmaxyx(stdscr, max_stdsrc_height, max_stdsrc_width);
+    getmaxyx(stdscr, maxStdsrcHeight, maxStdsrcWidth);
 
-    int cpu_usage_win_height = (max_stdsrc_height - 1)/2;
-    int ram_usage_win_height = max_stdsrc_height - 1 - cpu_usage_win_height;
-    int core_usage_win_height = max_stdsrc_height/3;
-    int core_temps_win_height = core_usage_win_height;
-    int core_freq_win_height = max_stdsrc_height - 2*core_usage_win_height;
-    int core_freq_win_pos = 2*core_usage_win_height;
-    int graphics_win_width = max_stdsrc_width-core_wins_width;
+    int cpuUsageWin_height = (maxStdsrcHeight - 1)/2;
+    int ramUsageWin_height = maxStdsrcHeight - 1 - cpuUsageWin_height;
+    int coreUsageWin_height = maxStdsrcHeight/3;
+    int coreTempsWin_height = coreUsageWin_height;
+    int coreFreqWin_height = maxStdsrcHeight - 2*coreUsageWin_height;
+    int coreFreqWin_pos = 2*coreUsageWin_height;
+    int graphics_win_width = maxStdsrcWidth-coreWinsWidth;
     
-    cpu_usage_win = newwin(cpu_usage_win_height, graphics_win_width, 0, 0);
-    box(cpu_usage_win, 0, 0);
-    wmove(cpu_usage_win, 0, 1), wprintw(cpu_usage_win, "CPU usage");
-    wmove(cpu_usage_win, 0, graphics_win_width-12), wprintw(cpu_usage_win, "[%.2f]", cpuInfo->get_core_usage(-1));
+    cpuUsageWin = newwin(cpuUsageWin_height, graphics_win_width, 0, 0);
+    box(cpuUsageWin, 0, 0);
+    wmove(cpuUsageWin, 0, 1), wprintw(cpuUsageWin, "CPU usage");
+    wmove(cpuUsageWin, 0, graphics_win_width-12), wprintw(cpuUsageWin, "[%.2f]", cpuInfo->getCoreUsage(-1));
     
-    ram_usage_win = newwin(ram_usage_win_height, graphics_win_width, cpu_usage_win_height, 0);
-    box(ram_usage_win, 0, 0);
-    wmove(ram_usage_win, 0, 1), wprintw(ram_usage_win, "RAM usage");
-    wmove(ram_usage_win, 0, graphics_win_width-17);
-    wprintw(ram_usage_win, "[%.2f/%.2f GB]", ramInfo->get_ram_usage()/100*ramInfo->get_total_ram(), ramInfo->get_total_ram());
+    ramUsageWin = newwin(ramUsageWin_height, graphics_win_width, cpuUsageWin_height, 0);
+    box(ramUsageWin, 0, 0);
+    wmove(ramUsageWin, 0, 1), wprintw(ramUsageWin, "RAM usage");
+    wmove(ramUsageWin, 0, graphics_win_width-17);
+    wprintw(ramUsageWin, "[%.2f/%.2f GB]", ramInfo->getRamUsage()/100*ramInfo->getTotalRam(), ramInfo->getTotalRam());
     
-    core_usage_win = newwin(core_usage_win_height, core_wins_width, 0, graphics_win_width);
-    box(core_usage_win, 0, 0);
-    wmove(core_usage_win, 0, 1), wprintw(core_usage_win, "Core usage");
+    coreUsageWin = newwin(coreUsageWin_height, coreWinsWidth, 0, graphics_win_width);
+    box(coreUsageWin, 0, 0);
+    wmove(coreUsageWin, 0, 1), wprintw(coreUsageWin, "Core usage");
     
-    core_temps_win = newwin(core_temps_win_height, core_wins_width, core_usage_win_height, graphics_win_width);
-    box(core_temps_win, 0, 0);
-    wmove(core_temps_win, 0, 1), wprintw(core_temps_win, "Core temps");
+    coreTempsWin = newwin(coreTempsWin_height, coreWinsWidth, coreUsageWin_height, graphics_win_width);
+    box(coreTempsWin, 0, 0);
+    wmove(coreTempsWin, 0, 1), wprintw(coreTempsWin, "Core temps");
     
-    core_freq_win = newwin(core_freq_win_height, core_wins_width, core_freq_win_pos, graphics_win_width);
-    box(core_freq_win, 0, 0);
-    wmove(core_freq_win, 0, 1), wprintw(core_freq_win, "Core frequency");
+    coreFreqWin = newwin(coreFreqWin_height, coreWinsWidth, coreFreqWin_pos, graphics_win_width);
+    box(coreFreqWin, 0, 0);
+    wmove(coreFreqWin, 0, 1), wprintw(coreFreqWin, "Core frequency");
     
-    refresh_rate_win = newwin(1, max_stdsrc_width-core_wins_width, max_stdsrc_height-1, 0);
-    wprintw(refresh_rate_win, "Refreshing every %.2f seconds", refresh_rate);
+    refreshRateWin = newwin(1, maxStdsrcWidth-coreWinsWidth, maxStdsrcHeight-1, 0);
+    wprintw(refreshRateWin, "Refreshing every %.2f seconds", refreshRate);
 }
 
-void MainWindow::set_refresh_rate(string refresh_rate) {
-    wclear(refresh_rate_win);
-    wprintw(refresh_rate_win, "Refreshing every %s seconds", refresh_rate.c_str());
-    wrefresh(refresh_rate_win);
+void MainWindow::setRefreshRate(string refresh_rate) {
+    wclear(refreshRateWin);
+    wprintw(refreshRateWin, "Refreshing every %s seconds", refresh_rate.c_str());
+    wrefresh(refreshRateWin);
 }
 
-void MainWindow::print_core_usage() {
-    clear_box(core_usage_win);
-    wrefresh(core_usage_win);
+void MainWindow::printCoreUsage() {
+    clearBox(coreUsageWin);
+    wrefresh(coreUsageWin);
     int n;
-    int max_win_height, max_win_width;
-    getmaxyx(core_usage_win, max_win_height, max_win_width);
-    if(cpuInfo->cpu_cores() > max_win_height-2) n = max_win_height-2;
-    else n = cpuInfo->cpu_cores();
+    int maxWinHeight, maxWinWidth;
+    getmaxyx(coreUsageWin, maxWinHeight, maxWinWidth);
+    if(cpuInfo->cpuCores() > maxWinHeight-2) n = maxWinHeight-2;
+    else n = cpuInfo->cpuCores();
     for(int i = 0; i < n; ++i) {
-        wmove(core_usage_win, i+1, 1);
-        wprintw(core_usage_win, "CPU%d: %.2f % %", i, cpuInfo->get_core_usage(i));
+        wmove(coreUsageWin, i+1, 1);
+        wprintw(coreUsageWin, "CPU%d: %.2f % %", i, cpuInfo->getCoreUsage(i));
     }
 }
 
-void MainWindow::print_core_temps() {
-    clear_box(core_temps_win);
-    wrefresh(core_temps_win);
+void MainWindow::printCoreTemps() {
+    clearBox(coreTempsWin);
+    wrefresh(coreTempsWin);
     int n;
-    int max_win_height = getmaxy(core_temps_win);
-    if(cpuInfo->cpu_sensors() > max_win_height-2) n = max_win_height-2;
-    else n = cpuInfo->cpu_sensors();
+    int maxWinHeight = getmaxy(coreTempsWin);
+    if(cpuInfo->cpuSensors() > maxWinHeight-2) n = maxWinHeight-2;
+    else n = cpuInfo->cpuSensors();
     for(int i = 0; i < n; ++i) {
-        wmove(core_temps_win, i+1, 1);
-        wprintw(core_temps_win, "%s: %d ºC", cpuInfo->get_core_temp(i).first.c_str(), cpuInfo->get_core_temp(i).second);
+        wmove(coreTempsWin, i+1, 1);
+        wprintw(coreTempsWin, "%s: %d ºC", cpuInfo->getCoreTemp(i).first.c_str(), cpuInfo->getCoreTemp(i).second);
     }
 }
 
-void MainWindow::print_core_freq() {
-    clear_box(core_freq_win);
+void MainWindow::printCoreFreq() {
+    clearBox(coreFreqWin);
     int n;
-    int max_win_height = getmaxy(core_freq_win);
-    if(cpuInfo->cpu_cores() > max_win_height-2) n = max_win_height-2;
-    else n = cpuInfo->cpu_cores();
+    int maxWinHeight = getmaxy(coreFreqWin);
+    if(cpuInfo->cpuCores() > maxWinHeight-2) n = maxWinHeight-2;
+    else n = cpuInfo->cpuCores();
     for(int i = 0; i < n; ++i) {
-        wmove(core_freq_win, i+1, 1);
-        wprintw(core_freq_win, "CPU%d: %d MHz", i, int(cpuInfo->get_core_freq(i)));
+        wmove(coreFreqWin, i+1, 1);
+        wprintw(coreFreqWin, "CPU%d: %d MHz", i, int(cpuInfo->getCoreFreq(i)));
     }
 }
 
-void MainWindow::print_all_win() {
-    print_cpu_graphic();
-    print_ram_graphic();
-    print_core_usage();
-    print_core_temps();
-    print_core_freq();
+void MainWindow::printAllWin() {
+    printCpuGraphic();
+    printRamGraphic();
+    printCoreUsage();
+    printCoreTemps();
+    printCoreFreq();
 }
 
 void MainWindow::show() {
@@ -193,10 +193,10 @@ void MainWindow::show() {
     timeout(100);
     while((c = getch())) {
         if(c == -1) {
-            cpuInfo->update_stats();
-            ramInfo->update_stats();
-            print_all_win();
-            refresh_all_win();
+            cpuInfo->updateStats();
+            ramInfo->updateStats();
+            printAllWin();
+            refreshAllWin();
         }
         
         if(c == KEY_RESIZE) {
@@ -206,7 +206,7 @@ void MainWindow::show() {
             int decimal_size = 0;
             string num;
             num.push_back(c);
-            set_refresh_rate(num);
+            setRefreshRate(num);
             bool point = false;
             timeout(3000);
             while(decimal_size < 4 and (c = getch())) {
@@ -214,28 +214,30 @@ void MainWindow::show() {
                     if(point) break;
                     else {
                         num.push_back(c);
-                        set_refresh_rate(num);
+                        setRefreshRate(num);
                         point = true;
                     }
                 }
                 else if(c >= '0' and c <= '9') {
                     num.push_back(c);
-                    set_refresh_rate(num); 
+                    setRefreshRate(num);
                 }
                 else if(c == '\n') {
-                    if(stod(num) >= 0.01) refresh_rate = stod(num);
+                    if(stod(num) >= 0.01) refreshRate = stod(num);
                     break;
                 }
                 else break;
                 
                 if(point) ++decimal_size;
             }
-            wclear(refresh_rate_win);
-            wprintw(refresh_rate_win, "Refreshing every %.2f seconds", refresh_rate);
-            wrefresh(refresh_rate_win);
+            wclear(refreshRateWin);
+            wprintw(refreshRateWin, "Refreshing every %.2f seconds", refreshRate);
+            wrefresh(refreshRateWin);
+        }
+        else if (c ==KEY_F(2)) {
         }
         else if(c == 'q') break;
-        timeout(refresh_rate*1000);
+        timeout(refreshRate*1000);
     }
 }
 

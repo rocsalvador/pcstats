@@ -18,15 +18,15 @@ private:
 public:
     RamInfo();
 
-    void update_ram_usage();
+    void updateRamUsage();
 
-    void update_stats();
+    void updateStats();
 
-    double get_total_ram() const;
+    double getTotalRam() const;
 
-    double get_ram_usage() const;
+    double getRamUsage() const;
 
-    void reset_saved_stats();
+    void resetSavedStats();
 };
 
 #endif

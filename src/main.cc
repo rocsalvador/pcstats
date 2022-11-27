@@ -8,7 +8,7 @@ void usage() {
 
 int main(int argc, char* argv[]) {
     double refresh_rate = 1;
-    
+
     vector<string> arguments = {"-n"};
     if(argc > 1) {
         if(argc == 3 and argv[1] == arguments[0]) {
@@ -20,8 +20,8 @@ int main(int argc, char* argv[]) {
             return 0;
         }
     }
-    
+
     MainWindow mainWindow(refresh_rate);
-    
+
     mainWindow.show();
 }

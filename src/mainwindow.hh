@@ -13,21 +13,20 @@ class MainWindow {
 private:
     //Private attributes
     
-    WINDOW* cpu_usage_win;
-    WINDOW* ram_usage_win;
-    WINDOW* core_usage_win;
-    WINDOW* core_temps_win;
-    WINDOW* core_freq_win;
-    WINDOW* refresh_rate_win;
+    WINDOW* cpuUsageWin;
+    WINDOW* ramUsageWin;
+    WINDOW* coreUsageWin;
+    WINDOW* coreTempsWin;
+    WINDOW* coreFreqWin;
+    WINDOW* refreshRateWin;
     
-    int max_stdsrc_height, max_stdsrc_width;
+    int maxStdsrcHeight, maxStdsrcWidth;
 
-    int core_wins_width;
+    int coreWinsWidth;
     
-    list<int> cpu_usage_history, ram_usage_history;
+    list<int> cpuUsageHistory, ramUsageHistory;
     
-    double refresh_rate;
-    
+    double refreshRate;
 
     CpuInfo *cpuInfo;
     RamInfo *ramInfo;
@@ -35,30 +34,30 @@ private:
     
     //Private functions
     
-    void clear_box(WINDOW* win);
+    void clearBox(WINDOW* win);
 
-    void maximum_win_sizes();
+    void maximumWinSizes();
     
-    void print_cpu_graphic();
+    void printCpuGraphic();
     
-    void print_ram_graphic();
+    void printRamGraphic();
     
-    void print_core_usage();
+    void printCoreUsage();
     
-    void print_core_temps();
+    void printCoreTemps();
     
-    void print_core_freq();
+    void printCoreFreq();
     
-    void print_all_win();
+    void printAllWin();
     
-    void refresh_all_win();
+    void refreshAllWin();
     
-    void set_refresh_rate(string refresh_rate);
+    void setRefreshRate(string refreshRate);
     
     void resize();
     
 public:
-    MainWindow(const double& refresh_rate);
+    MainWindow(const double& refreshRate);
     
     void show();
     

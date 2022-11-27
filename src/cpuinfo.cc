@@ -72,7 +72,7 @@ CpuInfo::CpuInfo() {
         file.close();
     }
 
-    reset_saved_stats();
+    resetSavedStats();
 }
 
 void CpuInfo::updateCpuUsage() {
@@ -153,7 +153,7 @@ void CpuInfo::updateCpuFreq() {
     file.close();
 }
 
-void CpuInfo::update_cpu_temp() {
+void CpuInfo::updateCpuTemp() {
     ifstream file;
     double temp;
     int j = 1;
@@ -172,40 +172,40 @@ void CpuInfo::update_cpu_temp() {
     ++tempCounter;
 }
 
-void CpuInfo::update_stats() {
+void CpuInfo::updateStats() {
     updateCpuFreq();
-    update_cpu_temp();
+    updateCpuTemp();
     updateCpuUsage();
 }
 
-string CpuInfo::cpu_name() const {
+string CpuInfo::cpuName() const {
     return name;
 }
 
-int CpuInfo::cpu_cores() const {
+int CpuInfo::cpuCores() const {
     return cores;
 }
 
-int CpuInfo::cpu_sensors() const {
+int CpuInfo::cpuSensors() const {
     return coreTemps.size();
 }
 
 
-double CpuInfo::get_core_freq(int core) const {
+double CpuInfo::getCoreFreq(int core) const {
     if(core == -1) return cpuFreq;
     else return coresFreq[core];
 }
 
-double CpuInfo::get_core_usage(int core) const {
+double CpuInfo::getCoreUsage(int core) const {
     if(core == -1) return cpuUsage;
     else return coresUsage[core];
 }
 
-pair<string,int> CpuInfo::get_core_temp(int core) const {
+pair<string,int> CpuInfo::getCoreTemp(int core) const {
     return coreTemps[core];
 }
 
-void CpuInfo::reset_saved_stats() {
+void CpuInfo::resetSavedStats() {
     maxFreq = 0, avgUsage = 0, avgUsage = 0, maxUsage = 0;
     usageCounter = 0, freqCounter = 0;
     maxTemp = 0, avgTemp = 0, tempCounter = 0;
