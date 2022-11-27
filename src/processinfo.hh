@@ -8,7 +8,7 @@
 #include <vector>
 using namespace std;
 
-class processes {
+class ProcessInfo {
 private:
     struct process {
         string name;
@@ -25,7 +25,7 @@ private:
     map<int, process*> procsPidMap;
 
 public:
-    processes();
+    ProcessInfo();
 
     int getNProcs() const;
 

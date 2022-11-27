@@ -1,58 +1,58 @@
-#include "processes.hh"
+#include "processinfo.hh"
 
-processes::processes()
+ProcessInfo::ProcessInfo()
 {
     
 }
 
-int processes::getNProcs() const
+int ProcessInfo::getNProcs() const
 {
     return procsNameMap.size();
 }
 
-string processes::getProcName(int i) const
+string ProcessInfo::getProcName(int i) const
 {
     auto it = procsNameMap.begin();
     for(int j = 0; j < i; ++j) ++it;
     return it->first;
 }
 
-string processes::getProcState(int i) const
+string ProcessInfo::getProcState(int i) const
 {
     auto it = procsNameMap.begin();
     for(int j = 0; j < i; ++j) ++it;
     return it->second->state;
 }
 
-int processes::getProcThreads(int i) const
+int ProcessInfo::getProcThreads(int i) const
 {
     auto it = procsNameMap.begin();
     for(int j = 0; j < i; ++j) ++it;
     return it->second->threads;
 }
 
-int processes::getProcIndex(string procName) const
+int ProcessInfo::getProcIndex(string procName) const
 {
     auto it = procsNameMap.find(procName);
     if(it != procsNameMap.end()) return distance(procsNameMap.begin(), it);
     else return -1;
 }
 
-int processes::getProcPid(int i) const
+int ProcessInfo::getProcPid(int i) const
 {
     auto it = procsNameMap.begin();
     for(int j = 0; j < i; ++j) ++it;
     return it->second->writeKB - it->second->lastWriteKB;
 }
 
-double processes::getReadKB(int i) const
+double ProcessInfo::getReadKB(int i) const
 {
     auto it = procsNameMap.begin();
     for(int j = 0; j < i; ++j) ++it;
     return it->second->readKB - it->second->lastReadKB;
 }
 
-double processes::getWriteKB(int i) const
+double ProcessInfo::getWriteKB(int i) const
 {
     auto it = procsNameMap.begin();
     for(int j = 0; j < i; ++j) ++it;
@@ -60,17 +60,17 @@ double processes::getWriteKB(int i) const
 }
 
 
-processes::process processes::getProcByName(string name) const
+ProcessInfo::process ProcessInfo::getProcByName(string name) const
 {
     return *procsNameMap.find(name)->second;
 }
 
-processes::process processes::getProcByPid(int pid) const
+ProcessInfo::process ProcessInfo::getProcByPid(int pid) const
 {
     return *procsPidMap.find(pid)->second;
 }
 
-void processes::update()
+void ProcessInfo::update()
 {
     map<string, process*> auxNameMap = procsNameMap;
     map<int, process*> auxPidMap = procsPidMap;

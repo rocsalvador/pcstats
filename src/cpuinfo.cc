@@ -1,6 +1,6 @@
 #include "cpuinfo.hh"
 
-cpuinfo::cpuinfo() {
+CpuInfo::CpuInfo() {
     ifstream file;
     file.open("/proc/cpuinfo");
     if(not file.is_open()) {
@@ -8,42 +8,42 @@ cpuinfo::cpuinfo() {
         exit(1);
     }
 
-    cpu.cores = 0;
+    cores = 0;
     bool first = true;
     string aux;
     while(file >> aux) {
-        if(aux == "processor") ++cpu.cores;
+        if(aux == "processor") ++cores;
         else if(first and aux == "model") {
             file >> aux;
             if(aux == "name") {
                 first = false;
                 file >> aux;
                 file.seekg(1,ios_base::cur);
-                getline(file,cpu.name);
+                getline(file, name);
             }
         }
     }
     file.close();
 
-    cpu.coresFreq = vector<double> (cpu.cores);
-    cpu.coresLast = vector<unsigned long> (cpu.cores*4);
-    cpu.coresUsage = vector<double> (cpu.cores);
+    coresFreq = vector<double> (cores);
+    coresLast = vector<unsigned long> (cores*4);
+    coresUsage = vector<double> (cores);
 
     file.open("/proc/stat");
     if(not file.is_open()) {
         cout << "ERROR: Unable to open /proc/stat file" << endl;
         exit(1);
     }
-    file >> aux >> cpu.lastUser >> cpu.lastNice >> cpu.lastSystem >> cpu.lastIdle;
-    for(int i = 0; i < cpu.cores; ++i) {
+    file >> aux >> lastUser >> lastNice >> lastSystem >> lastIdle;
+    for(int i = 0; i < cores; ++i) {
         for(int j = 0; j < 7; ++j) file >> aux;
-        file >> cpu.coresLast[i*4] >> cpu.coresLast[i*4+1] >> cpu.coresLast[i*4+2] >> cpu.coresLast[i*4+3];
+        file >> coresLast[i*4] >> coresLast[i*4+1] >> coresLast[i*4+2] >> coresLast[i*4+3];
     }
     file.close();
 
     int i = 0;
-    cpu.cpuTempFolder = "/sys/class/hwmon/hwmon";
-    string path = cpu.cpuTempFolder;
+    cpuTempFolder = "/sys/class/hwmon/hwmon";
+    string path = cpuTempFolder;
     path.append(to_string(i));
     bool found = false;
     file.open(path + "/name");
@@ -52,21 +52,21 @@ cpuinfo::cpuinfo() {
         found = (aux == "coretemp");
         file.close();
         ++i;
-        path = cpu.cpuTempFolder, path.append(to_string(i));
+        path = cpuTempFolder, path.append(to_string(i));
         file.open(path + "/name");
     }
     file.close();
     if(found) {
-        cpu.cpuTempFolder.append(to_string(i-1));
+        cpuTempFolder.append(to_string(i-1));
         i = 1;
-        path = cpu.cpuTempFolder, path.append("/temp"), path.append(to_string(i));
+        path = cpuTempFolder, path.append("/temp"), path.append(to_string(i));
         file.open(path + "_label");
         while(file.is_open()) {
             getline(file,aux);
-            cpu.coreTemps.push_back({aux,-1});
+            coreTemps.push_back({aux,-1});
             file.close();
             ++i;
-            path = cpu.cpuTempFolder, path.append("/temp"), path.append(to_string(i));
+            path = cpuTempFolder, path.append("/temp"), path.append(to_string(i));
             file.open(path + "_label");
         }
         file.close();
@@ -75,7 +75,7 @@ cpuinfo::cpuinfo() {
     reset_saved_stats();
 }
 
-void cpuinfo::updateCpuUsage() {
+void CpuInfo::updateCpuUsage() {
     unsigned long long User, Nice, System, Idle;
     string aux;
     ifstream file;
@@ -87,41 +87,41 @@ void cpuinfo::updateCpuUsage() {
 
     file >> aux >> User >> Nice >> System >> Idle;
 
-    int total = (User - cpu.lastUser) + (Nice - cpu.lastNice) + (System - cpu.lastSystem);
-    cpu.cpuUsage = total;
-    total += (Idle - cpu.lastIdle);
-    if(total > 0) cpu.cpuUsage /= total;
-    else cpu.cpuUsage = 0;
-    cpu.cpuUsage *= 100;
+    int total = (User - lastUser) + (Nice - lastNice) + (System - lastSystem);
+    cpuUsage = total;
+    total += (Idle - lastIdle);
+    if(total > 0) cpuUsage /= total;
+    else cpuUsage = 0;
+    cpuUsage *= 100;
 
-    cpu.lastUser = User;
-    cpu.lastNice = Nice;
-    cpu.lastSystem = System;
-    cpu.lastIdle = Idle;
+    lastUser = User;
+    lastNice = Nice;
+    lastSystem = System;
+    lastIdle = Idle;
 
-    cpu.avgUsage += cpu.cpuUsage;
-    ++cpu.usageCounter;
-    cpu.maxUsage = max(cpu.maxUsage, cpu.cpuUsage);
+    avgUsage += cpuUsage;
+    ++usageCounter;
+    maxUsage = max(maxUsage, cpuUsage);
 
-    for(int i = 0; i < cpu.cores; ++i) {
+    for(int i = 0; i < cores; ++i) {
         for(int j = 0; j < 7; ++j) file >> aux;
         file >> User >> Nice >> System >> Idle;
-        total = (User - cpu.coresLast[i*4]) + (Nice - cpu.coresLast[i*4+1]) + (System - cpu.coresLast[i*4+2]);
-        cpu.coresUsage[i] = total;
-        total += (Idle - cpu.coresLast[i*4+3]);
-        if(total > 0) cpu.coresUsage[i] /= total;
-        else cpu.coresUsage[i] = 0;
-        cpu.coresUsage[i] *= 100;
+        total = (User - coresLast[i*4]) + (Nice - coresLast[i*4+1]) + (System - coresLast[i*4+2]);
+        coresUsage[i] = total;
+        total += (Idle - coresLast[i*4+3]);
+        if(total > 0) coresUsage[i] /= total;
+        else coresUsage[i] = 0;
+        coresUsage[i] *= 100;
 
-        cpu.coresLast[i*4] = User;
-        cpu.coresLast[i*4+1] = Nice;
-        cpu.coresLast[i*4+2] = System;
-        cpu.coresLast[i*4+3] = Idle;
+        coresLast[i*4] = User;
+        coresLast[i*4+1] = Nice;
+        coresLast[i*4+2] = System;
+        coresLast[i*4+3] = Idle;
     }
     file.close();
 }
 
-void cpuinfo::updateCpuFreq() {
+void CpuInfo::updateCpuFreq() {
     ifstream file;
     file.open("/proc/cpuinfo");
     if(not file.is_open()) {
@@ -130,7 +130,7 @@ void cpuinfo::updateCpuFreq() {
     }
 
     double coreFreq;
-    cpu.cpuFreq = 0;
+    cpuFreq = 0;
     int i = 0;
     string aux;
     while(file >> aux) {
@@ -138,75 +138,75 @@ void cpuinfo::updateCpuFreq() {
             file >> aux;
             if(aux == "MHz") {
                 file >> aux >> coreFreq;
-                cpu.cpuFreq += coreFreq;
-                cpu.coresFreq[i] = coreFreq;
+                cpuFreq += coreFreq;
+                coresFreq[i] = coreFreq;
                 ++i;
             }
         }
     }
-    cpu.cpuFreq /= cpu.cores;
+    cpuFreq /= cores;
 
-    cpu.avgFreq += cpu.cpuFreq;
-    ++cpu.freqCounter;
-    cpu.maxFreq = max(cpu.maxFreq, cpu.cpuFreq);
+    avgFreq += cpuFreq;
+    ++freqCounter;
+    maxFreq = max(maxFreq, cpuFreq);
 
     file.close();
 }
 
-void cpuinfo::update_cpu_temp() {
+void CpuInfo::update_cpu_temp() {
     ifstream file;
     double temp;
     int j = 1;
-    string path = cpu.cpuTempFolder;
+    string path = cpuTempFolder;
     path.append("/temp"), path.append(to_string(j));
     file.open(path + "_input");
-    for(unsigned int i = 0; i < cpu.coreTemps.size(); ++i) {
+    for(unsigned int i = 0; i < coreTemps.size(); ++i) {
         file >> temp;
-        cpu.coreTemps[i].second = temp/1000;
+        coreTemps[i].second = temp/1000;
         file.close();
         ++j;
-        path = cpu.cpuTempFolder, path.append("/temp"), path.append(to_string(j));
+        path = cpuTempFolder, path.append("/temp"), path.append(to_string(j));
         file.open(path + "_input");
     }
     file.close();
-    ++cpu.tempCounter;
+    ++tempCounter;
 }
 
-void cpuinfo::update_stats() {
+void CpuInfo::update_stats() {
     updateCpuFreq();
     update_cpu_temp();
     updateCpuUsage();
 }
 
-string cpuinfo::cpu_name() const {
-    return cpu.name;
+string CpuInfo::cpu_name() const {
+    return name;
 }
 
-int cpuinfo::cpu_cores() const {
-    return cpu.cores;
+int CpuInfo::cpu_cores() const {
+    return cores;
 }
 
-int cpuinfo::cpu_sensors() const {
-    return cpu.coreTemps.size();
+int CpuInfo::cpu_sensors() const {
+    return coreTemps.size();
 }
 
 
-double cpuinfo::get_core_freq(int core) const {
-    if(core == -1) return cpu.cpuFreq;
-    else return cpu.coresFreq[core];
+double CpuInfo::get_core_freq(int core) const {
+    if(core == -1) return cpuFreq;
+    else return coresFreq[core];
 }
 
-double cpuinfo::get_core_usage(int core) const {
-    if(core == -1) return cpu.cpuUsage;
-    else return cpu.coresUsage[core];
+double CpuInfo::get_core_usage(int core) const {
+    if(core == -1) return cpuUsage;
+    else return coresUsage[core];
 }
 
-pair<string,int> cpuinfo::get_core_temp(int core) const {
-    return cpu.coreTemps[core];
+pair<string,int> CpuInfo::get_core_temp(int core) const {
+    return coreTemps[core];
 }
 
-void cpuinfo::reset_saved_stats() {
-    cpu.maxFreq = 0, cpu.avgUsage = 0, cpu.avgUsage = 0, cpu.maxUsage = 0;
-    cpu.usageCounter = 0, cpu.freqCounter = 0;
-    cpu.maxTemp = 0, cpu.avgTemp = 0, cpu.tempCounter = 0;
+void CpuInfo::reset_saved_stats() {
+    maxFreq = 0, avgUsage = 0, avgUsage = 0, maxUsage = 0;
+    usageCounter = 0, freqCounter = 0;
+    maxTemp = 0, avgTemp = 0, tempCounter = 0;
 }

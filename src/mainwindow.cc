@@ -1,10 +1,10 @@
 #include "mainwindow.hh"
-#include "raminfo.hh"
 #include <curses.h>
 
-main_window::main_window(const double& refresh_rate) {
-    cpuInfo = new cpuinfo();
-    ramInfo = new raminfo();
+MainWindow::MainWindow(const double& refresh_rate) {
+    cpuInfo = new CpuInfo();
+    ramInfo = new RamInfo();
+    processInfo = new ProcessInfo();
     
     this->refresh_rate = refresh_rate;
 
@@ -16,7 +16,7 @@ main_window::main_window(const double& refresh_rate) {
     resize();
 }
 
-void main_window::maximum_win_sizes() {
+void MainWindow::maximum_win_sizes() {
     core_wins_width = 17;   // |CPUxx: ---- MHz|
     for(int i = 0; i < cpuInfo->cpu_sensors(); ++i) {
         if(core_wins_width < cpuInfo->get_core_temp(i).first.size() + 10)
@@ -24,7 +24,7 @@ void main_window::maximum_win_sizes() {
     }
 }
 
-void main_window::clear_box(WINDOW* win) {
+void MainWindow::clear_box(WINDOW* win) {
     int max_win_height, max_win_width;
     getmaxyx(win, max_win_height, max_win_width);
     for(int i = 1; i < max_win_height-1; ++i) {
@@ -35,7 +35,7 @@ void main_window::clear_box(WINDOW* win) {
     }
 }
 
-void main_window::refresh_all_win() {
+void MainWindow::refresh_all_win() {
     wrefresh(cpu_usage_win);
     wrefresh(ram_usage_win);
     wrefresh(core_usage_win);
@@ -45,7 +45,7 @@ void main_window::refresh_all_win() {
 }
 
 
-void main_window::print_cpu_graphic() {
+void MainWindow::print_cpu_graphic() {
     unsigned int max_win_height, max_win_width;
     getmaxyx(cpu_usage_win, max_win_height, max_win_width);
     double cpu_usage = cpuInfo->get_core_usage(-1);
@@ -71,7 +71,7 @@ void main_window::print_cpu_graphic() {
     else wprintw(cpu_usage_win, "[  %.2f]", cpuInfo->get_core_usage(-1));
 }
 
-void main_window::print_ram_graphic() {
+void MainWindow::print_ram_graphic() {
     unsigned int max_win_height, max_win_width;
     getmaxyx(ram_usage_win, max_win_height, max_win_width);
     double ram_usage = ramInfo->get_ram_usage();
@@ -94,7 +94,7 @@ void main_window::print_ram_graphic() {
     wprintw(ram_usage_win, "[%.2f/%.2f GB]", ramInfo->get_ram_usage()/100*ramInfo->get_total_ram(), ramInfo->get_total_ram());
 }
 
-void main_window::resize() {
+void MainWindow::resize() {
     cpu_usage_history.clear();
     ram_usage_history.clear();
         
@@ -135,13 +135,13 @@ void main_window::resize() {
     wprintw(refresh_rate_win, "Refreshing every %.2f seconds", refresh_rate);
 }
 
-void main_window::set_refresh_rate(string refresh_rate) {
+void MainWindow::set_refresh_rate(string refresh_rate) {
     wclear(refresh_rate_win);
     wprintw(refresh_rate_win, "Refreshing every %s seconds", refresh_rate.c_str());
     wrefresh(refresh_rate_win);
 }
 
-void main_window::print_core_usage() {
+void MainWindow::print_core_usage() {
     clear_box(core_usage_win);
     wrefresh(core_usage_win);
     int n;
@@ -155,7 +155,7 @@ void main_window::print_core_usage() {
     }
 }
 
-void main_window::print_core_temps() {
+void MainWindow::print_core_temps() {
     clear_box(core_temps_win);
     wrefresh(core_temps_win);
     int n;
@@ -168,7 +168,7 @@ void main_window::print_core_temps() {
     }
 }
 
-void main_window::print_core_freq() {
+void MainWindow::print_core_freq() {
     clear_box(core_freq_win);
     int n;
     int max_win_height = getmaxy(core_freq_win);
@@ -180,7 +180,7 @@ void main_window::print_core_freq() {
     }
 }
 
-void main_window::print_all_win() {
+void MainWindow::print_all_win() {
     print_cpu_graphic();
     print_ram_graphic();
     print_core_usage();
@@ -188,7 +188,7 @@ void main_window::print_all_win() {
     print_core_freq();
 }
 
-void main_window::show() {
+void MainWindow::show() {
     int c;
     timeout(100);
     while((c = getch())) {
@@ -239,6 +239,6 @@ void main_window::show() {
     }
 }
 
-main_window::~main_window() {
+MainWindow::~MainWindow() {
     endwin();
 }

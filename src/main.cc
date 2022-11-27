@@ -21,7 +21,7 @@ int main(int argc, char* argv[]) {
         }
     }
     
-    main_window win(refresh_rate);
+    MainWindow mainWindow(refresh_rate);
     
-    win.show();
+    mainWindow.show();
 }

@@ -1,6 +1,6 @@
 #include "raminfo.hh"
 
-raminfo::raminfo() {
+RamInfo::RamInfo() {
     ifstream file;
     string aux;
     file.open("/proc/meminfo");
@@ -9,14 +9,14 @@ raminfo::raminfo() {
         exit(1);
     }
     while(file >> aux and aux != "MemTotal:");
-    file >> ram.totalRam;
+    file >> totalRam;
     file.close();
-    ram.totalRamd = ram.totalRam/divisor;
+    totalRamd = totalRam/divisor;
 
     reset_saved_stats();
 }
 
-void raminfo::update_ram_usage() {
+void RamInfo::update_ram_usage() {
     ifstream file;
     file.open("/proc/meminfo");
     if(not file.is_open()) {
@@ -39,31 +39,31 @@ void raminfo::update_ram_usage() {
     file >> SRecalaimable;
     file.close();
 
-    usedRam = ram.totalRam - freeRam;
+    usedRam = totalRam - freeRam;
     cachedtotalRam = cachedRam + SRecalaimable - Shmem;
     realusedRam = usedRam - (bufferRam + cachedtotalRam);
-    ram.usedRamd = realusedRam/divisor;
-    ram.ramUsage = (realusedRam/double(ram.totalRam))*100;
+    usedRamd = realusedRam/divisor;
+    ramUsage = (realusedRam/double(totalRam))*100;
 
-    ram.avgUsage += ram.usedRamd;
-    ++ram.usageCounter;
-    ram.maxUsage = max(ram.maxUsage, ram.usedRamd);
+    avgUsage += usedRamd;
+    ++usageCounter;
+    maxUsage = max(maxUsage, usedRamd);
 }
 
 
-void raminfo::update_stats() {
+void RamInfo::update_stats() {
     update_ram_usage();
 }
 
-double raminfo::get_total_ram() const {
-    return ram.totalRamd;
+double RamInfo::get_total_ram() const {
+    return totalRamd;
 }
 
-double raminfo::get_ram_usage() const {
-    return ram.ramUsage;
+double RamInfo::get_ram_usage() const {
+    return ramUsage;
 }
 
-void raminfo::reset_saved_stats() {
-    ram.avgUsage = 0, ram.maxUsage = 0;
-    ram.usageCounter = 0;
+void RamInfo::reset_saved_stats() {
+    avgUsage = 0, maxUsage = 0;
+    usageCounter = 0;
 }

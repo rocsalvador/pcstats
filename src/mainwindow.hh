@@ -1,6 +1,7 @@
 #ifndef MAIN_WINDOW_HH
 #define MAIN_WINDOW_HH
 
+#include "processinfo.hh"
 #include "raminfo.hh"
 #include "cpuinfo.hh"
 #include <cstdlib>
@@ -8,7 +9,7 @@
 #include <ncurses.h>
 using namespace std;
 
-class main_window {
+class MainWindow {
 private:
     //Private attributes
     
@@ -28,8 +29,9 @@ private:
     double refresh_rate;
     
 
-    cpuinfo *cpuInfo;
-    raminfo *ramInfo;
+    CpuInfo *cpuInfo;
+    RamInfo *ramInfo;
+    ProcessInfo *processInfo;
     
     //Private functions
     
@@ -56,11 +58,11 @@ private:
     void resize();
     
 public:
-    main_window(const double& refresh_rate);
+    MainWindow(const double& refresh_rate);
     
     void show();
     
-    ~main_window();
+    ~MainWindow();
 };
 
 #endif

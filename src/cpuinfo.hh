@@ -6,36 +6,32 @@
 #include <vector>
 using namespace std;
 
-class cpuinfo {
+class CpuInfo {
 private:
-    struct cpu_info {
-        string name;
-        int cores;
+    string name;
+    int cores;
 
-        double cpuUsage;
-        vector<double> coresUsage;
-        vector<unsigned long> coresLast;
-        unsigned long long  lastUser, lastNice, lastSystem, lastIdle;
-        int usageCounter;
-        double maxUsage, avgUsage;
+    double cpuUsage;
+    vector<double> coresUsage;
+    vector<unsigned long> coresLast;
+    unsigned long long  lastUser, lastNice, lastSystem, lastIdle;
+    int usageCounter;
+    double maxUsage, avgUsage;
 
-        double cpuFreq;
-        vector<double> coresFreq;
-        int freqCounter;
-        double maxFreq, avgFreq;
-
-
-        string cpuTempFolder;
-        vector<pair<string,int>> coreTemps;
-        int tempCounter;
-        double maxTemp, avgTemp;
-    };
+    double cpuFreq;
+    vector<double> coresFreq;
+    int freqCounter;
+    double maxFreq, avgFreq;
 
 
-    cpu_info cpu;
+    string cpuTempFolder;
+    vector<pair<string,int>> coreTemps;
+    int tempCounter;
+    double maxTemp, avgTemp;
+
 
 public:
-    cpuinfo();
+    CpuInfo();
 
     void updateCpuFreq();
 

@@ -6,20 +6,17 @@
 #include <vector>
 using namespace std;
 
-class raminfo {
+class RamInfo {
 private:
-    struct ram_info {
-        unsigned long long totalRam;
-        int usageCounter;
-        double ramUsage;
-        double totalRamd, usedRamd, avgUsage, maxUsage;
-    };
+    unsigned long long totalRam;
+    int usageCounter;
+    double ramUsage;
+    double totalRamd, usedRamd, avgUsage, maxUsage;
 
-    ram_info ram;
     constexpr static double divisor = 1048576;
 
 public:
-    raminfo();
+    RamInfo();
 
     void update_ram_usage();
 
