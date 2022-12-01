@@ -4,7 +4,10 @@
 #include "processinfo.hh"
 #include "raminfo.hh"
 #include "cpuinfo.hh"
+#include "statswindow.hh"
+#include "procswindow.hh"
 #include <cstdlib>
+#include <curses.h>
 #include <list>
 #include <ncurses.h>
 using namespace std;
@@ -12,48 +15,32 @@ using namespace std;
 class MainWindow {
 private:
     //Private attributes
-    
-    WINDOW* cpuUsageWin;
-    WINDOW* ramUsageWin;
-    WINDOW* coreUsageWin;
-    WINDOW* coreTempsWin;
-    WINDOW* coreFreqWin;
+    StatsWindow* statsWindow;
+    ProcsWindow* procsWindow;
+
     WINDOW* refreshRateWin;
+    WINDOW* currentWindowWin;
     
     int maxStdsrcHeight, maxStdsrcWidth;
 
     int coreWinsWidth;
     
-    list<int> cpuUsageHistory, ramUsageHistory;
-    
     double refreshRate;
 
-    CpuInfo *cpuInfo;
-    RamInfo *ramInfo;
-    ProcessInfo *processInfo;
+    int currentWindow = 1;
+
+    int scrollPos = 0, maxScroll = 0;
     
     //Private functions
     
-    void clearBox(WINDOW* win);
-
-    void maximumWinSizes();
+    void clearBox(WINDOW* win, int y);
     
-    void printCpuGraphic();
-    
-    void printRamGraphic();
-    
-    void printCoreUsage();
-    
-    void printCoreTemps();
-    
-    void printCoreFreq();
-    
-    void printAllWin();
-    
-    void refreshAllWin();
-    
+    void print();
+        
     void setRefreshRate(string refreshRate);
-    
+
+    void refresh();
+
     void resize();
     
 public:

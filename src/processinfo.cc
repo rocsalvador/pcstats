@@ -13,21 +13,21 @@ int ProcessInfo::getNProcs() const
 string ProcessInfo::getProcName(int i) const
 {
     auto it = procsNameMap.begin();
-    for(int j = 0; j < i; ++j) ++it;
+    advance(it, i);
     return it->first;
 }
 
 string ProcessInfo::getProcState(int i) const
 {
     auto it = procsNameMap.begin();
-    for(int j = 0; j < i; ++j) ++it;
+    advance(it, i);
     return it->second->state;
 }
 
 int ProcessInfo::getProcThreads(int i) const
 {
     auto it = procsNameMap.begin();
-    for(int j = 0; j < i; ++j) ++it;
+    advance(it, i);
     return it->second->threads;
 }
 
@@ -41,21 +41,21 @@ int ProcessInfo::getProcIndex(string procName) const
 int ProcessInfo::getProcPid(int i) const
 {
     auto it = procsNameMap.begin();
-    for(int j = 0; j < i; ++j) ++it;
-    return it->second->writeKB - it->second->lastWriteKB;
+    advance(it, i);
+    return it->second->pid;
 }
 
 double ProcessInfo::getReadKB(int i) const
 {
     auto it = procsNameMap.begin();
-    for(int j = 0; j < i; ++j) ++it;
+    advance(it, i);
     return it->second->readKB - it->second->lastReadKB;
 }
 
 double ProcessInfo::getWriteKB(int i) const
 {
     auto it = procsNameMap.begin();
-    for(int j = 0; j < i; ++j) ++it;
+    advance(it, i);
     return it->second->writeKB - it->second->lastWriteKB;
 }
 
@@ -73,7 +73,6 @@ ProcessInfo::process ProcessInfo::getProcByPid(int pid) const
 void ProcessInfo::update()
 {
     map<string, process*> auxNameMap = procsNameMap;
-    map<int, process*> auxPidMap = procsPidMap;
 
     procsNameMap.clear();
     procsPidMap.clear();
@@ -131,8 +130,8 @@ void ProcessInfo::update()
                     lastWriteKB = it->second->writeKB;
                 }
                 
-                process auxProc = {procName, state, threads, pid, writeKB, readKB, lastWriteKB, lastReadKB};
-                process *proc = &auxProc;
+                process *proc = new process();
+                *proc = {procName, state, threads, pid, writeKB, readKB, lastWriteKB, lastReadKB};
                 procsNameMap.insert({procName, proc});
                 procsPidMap.insert({pid, proc});
             }
