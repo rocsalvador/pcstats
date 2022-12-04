@@ -27,7 +27,7 @@ void MainWindow::clearBox(WINDOW* win, int y) {
 
 void MainWindow::setRefreshRate(string refresh_rate) {
     wclear(refreshRateWin);
-    wprintw(refreshRateWin, "Refreshing every %s seconds", refresh_rate.c_str());
+    wprintw(refreshRateWin, "Refresh rate: %s s", refresh_rate.c_str());
     wrefresh(refreshRateWin);
 }
 
@@ -52,8 +52,20 @@ void MainWindow::resize() {
             break;
     }
     getmaxyx(stdscr, maxStdsrcHeight, maxStdsrcWidth);
-    refreshRateWin = newwin(1, maxStdsrcWidth, maxStdsrcHeight - 1, 0);
-    wprintw(refreshRateWin, "Refreshing every %.2f seconds", refreshRate);
+    refreshRateWin = newwin(1, maxStdsrcWidth / 2, maxStdsrcHeight - 1, 0);
+    wprintw(refreshRateWin, "Refresh rate: %.2f s", refreshRate);
+    currentWindowWin = newwin(1, maxStdsrcWidth / 2, maxStdsrcHeight - 1, maxStdsrcWidth / 2);
+    wattron(currentWindowWin, A_BOLD);
+    waddch(currentWindowWin, ACS_VLINE);
+    if (currentWindow == 1) wattron(currentWindowWin, A_STANDOUT);
+    wprintw(currentWindowWin, " STATS WIN (F1) ", refreshRate);
+    if (currentWindow == 1) wattroff(currentWindowWin, A_STANDOUT);
+    waddch(currentWindowWin, ACS_VLINE);
+    if (currentWindow == 2) wattron(currentWindowWin, A_STANDOUT);
+    wprintw(currentWindowWin, " PROCS WIN (F2) ", refreshRate);
+    if (currentWindow == 2) wattroff(currentWindowWin, A_STANDOUT);
+    waddch(currentWindowWin, ACS_VLINE);
+    wattroff(currentWindowWin, A_BOLD);
 }
 
 void MainWindow::refresh() {
@@ -66,44 +78,45 @@ void MainWindow::refresh() {
             break;
     }
     wrefresh(refreshRateWin);
+    wrefresh(currentWindowWin);
 }
 
 void MainWindow::show() {
-    int c;
+    int key;
     timeout(100);
-    while((c = getch())) {
-        if(c == -1) {
+    while((key = getch())) {
+        if(key == -1) {
             statsWindow->update();
             procsWindow->update();
             print();
             refresh();
+            timeout(refreshRate*1000);
         }
-        
-        if(c == KEY_RESIZE) {
+        else if(key == KEY_RESIZE) {
             resize();
             timeout(100);
         }
-        else if(c >= '0' and c <= '9') {
+        else if(key >= '0' and key <= '9') {
             int decimal_size = 0;
             string num;
-            num.push_back(c);
+            num.push_back(key);
             setRefreshRate(num);
             bool point = false;
             timeout(3000);
-            while(decimal_size < 4 and (c = getch())) {
-                if(c == '.') {
+            while(decimal_size < 4 and (key = getch())) {
+                if(key == '.') {
                     if(point) break;
                     else {
-                        num.push_back(c);
+                        num.push_back(key);
                         setRefreshRate(num);
                         point = true;
                     }
                 }
-                else if(c >= '0' and c <= '9') {
-                    num.push_back(c);
+                else if(key >= '0' and key <= '9') {
+                    num.push_back(key);
                     setRefreshRate(num);
                 }
-                else if(c == '\n') {
+                else if(key == '\n') {
                     if(stod(num) >= 0.01) refreshRate = stod(num);
                     break;
                 }
@@ -112,34 +125,22 @@ void MainWindow::show() {
                 if(point) ++decimal_size;
             }
             wclear(refreshRateWin);
-            wprintw(refreshRateWin, "Refreshing every %.2f seconds", refreshRate);
+            wprintw(refreshRateWin, "Refresh rate: %.2f s", refreshRate);
             wrefresh(refreshRateWin);
             timeout(refreshRate * 1000);
         }
-        else if (c == KEY_F(2) and currentWindow != 2) {
+        else if (key == KEY_F(2) and currentWindow != 2) {
             currentWindow = 2;
             resize();
             timeout(0);
         }
-        else if (c == KEY_F(1) and currentWindow != 1) {
+        else if (key == KEY_F(1) and currentWindow != 1) {
             currentWindow = 1;
             resize();
             timeout(0);
         }
-        else if (c == KEY_DOWN and currentWindow == 2 and scrollPos < maxScroll - 1) {
-            ++scrollPos;
-            refresh();
-            print();
-            timeout(0);
-        }
-        else if (c == KEY_UP and currentWindow == 2 and scrollPos > 0) {
-            --scrollPos;
-            refresh();
-            print();
-            timeout(0);
-        }
-        else if(c == 'q') break;
-        else timeout(refreshRate*1000);
+        else if(key == 'q') break;
+        else if (currentWindow == 2) procsWindow->input(key); 
     }
 }
 

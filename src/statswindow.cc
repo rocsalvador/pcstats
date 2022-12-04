@@ -178,5 +178,6 @@ void StatsWindow::update() {
 
 
 StatsWindow::~StatsWindow() {
-    delete cpuInfo, ramInfo;
+    delete cpuInfo;
+    delete ramInfo;
 }

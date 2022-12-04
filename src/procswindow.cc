@@ -29,6 +29,7 @@ void ProcsWindow::resize() {
     int writePos = maxStdsrcWidth / 9 * 5;
     int readPos = maxStdsrcWidth / 9 * 7;
     box(procsWin, 0, 0);
+    wattron(procsWin, A_BOLD);
     wmove(procsWin, 1, 1);
     wprintw(procsWin, "NAME");
     wmove(procsWin, 1, pidPos);
@@ -41,6 +42,7 @@ void ProcsWindow::resize() {
     wprintw(procsWin, "WRITE");
     wmove(procsWin, 1, readPos);
     wprintw(procsWin, "READ");
+    wattroff(procsWin, A_BOLD);
 }
 
 void ProcsWindow::print() {
@@ -63,7 +65,7 @@ void ProcsWindow::print() {
         wmove(procsWin, i + 2, pidPos);
         wprintw(procsWin, "%d", processInfo->getProcPid(procIdx));
         wmove(procsWin, i + 2, statusPos);
-        // wprintw(procsWin, "%s", processInfo->getProcState(procIdx).c_str());
+        wprintw(procsWin, "%s", processInfo->getProcState(procIdx).c_str());
         wmove(procsWin, i + 2, threadsPos);
         wprintw(procsWin, "%d", processInfo->getProcThreads(procIdx));
         wmove(procsWin, i + 2, writePos);
@@ -73,8 +75,17 @@ void ProcsWindow::print() {
     }
 }
 
+void ProcsWindow::input(int key) {
+    if (key == KEY_DOWN and scrollPos < maxScroll - 1) ++scrollPos;
+    else if (key == KEY_UP and scrollPos > 0) --scrollPos;
+    refresh();
+    print();
+    timeout(0);
+}
+
 void ProcsWindow::update() {
     processInfo->update();
+    maxScroll = processInfo->getNProcs();
 }
 
 ProcsWindow::~ProcsWindow() {

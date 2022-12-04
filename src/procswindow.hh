@@ -37,6 +37,8 @@ public:
     void resize();
 
     void update();
+
+    void input(int key);
     
     ~ProcsWindow();
 };
