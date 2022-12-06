@@ -19,7 +19,13 @@ private:
         double writeKB;
         double lastWriteKB;
         double lastReadKB;
+        double cpuUsage;
+        double lastUTime;
+        double lastSTime;
+        double lastSysUptime;
     };
+
+    double lastSysUptime = 0;
 
     map<string, process*> procsNameMap;
     map<int, process*> procsPidMap;
@@ -40,6 +46,8 @@ public:
     double getWriteKB(int i) const;
     
     double getReadKB(int i) const;
+
+    double getCpuUsage(int i) const;
 
     int getProcIndex(string procName) const;
 

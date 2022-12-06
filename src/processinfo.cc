@@ -1,4 +1,5 @@
 #include "processinfo.hh"
+#include <unistd.h>
 
 ProcessInfo::ProcessInfo()
 {
@@ -59,6 +60,12 @@ double ProcessInfo::getWriteKB(int i) const
     return it->second->writeKB - it->second->lastWriteKB;
 }
 
+double ProcessInfo::getCpuUsage(int i) const 
+{
+    auto it = procsNameMap.begin();
+    advance(it, i);
+    return it->second->cpuUsage;
+}
 
 ProcessInfo::process ProcessInfo::getProcByName(string name) const
 {
@@ -76,6 +83,7 @@ void ProcessInfo::update()
 
     procsNameMap.clear();
     procsPidMap.clear();
+
     for(const auto& file : filesystem::directory_iterator("/proc")) {
         string fileDir{file.path().u8string()};
         string fileName = fileDir;
@@ -122,16 +130,44 @@ void ProcessInfo::update()
                     }
                     procName = aux;
                 }
-                
+
                 double lastReadKB = 0, lastWriteKB = 0;
+                double lastUTime = 0, lastSTime = 0;
+                double lastSysUptime = 0;
                 auto it = auxNameMap.find(procName);
                 if(it != auxNameMap.end()) {
                     lastReadKB = it->second->readKB;
                     lastWriteKB = it->second->writeKB;
+                    lastUTime = it->second->lastUTime;
+                    lastSTime = it->second->lastSTime;
+                    lastSysUptime = it->second->lastSysUptime;
+                }
+
+                ifstream procStatFile(fileDir + "/stat");
+                double cpuUsage = 0;
+                if (procStatFile.is_open()) {
+                    double sysUptime;
+                    ifstream uptimeFile("/proc/uptime");
+                    uptimeFile >> sysUptime;
+                    uptimeFile.close();
+                    string aux;
+                    for (int i = 0; i < 13; ++i) procStatFile >> aux;
+                    long uTime, sTime, startTime;
+                    procStatFile >> uTime >> sTime;
+                    for (int i = 0; i < 6; ++i) procStatFile >> aux;
+                    procStatFile >> startTime;
+                    double clkTck = sysconf(_SC_CLK_TCK);
+                    double uTimeSec = uTime / clkTck;
+                    double sTimeSec = sTime / clkTck;
+                    cpuUsage = abs(uTimeSec + sTimeSec - lastUTime - lastSTime) / (sysUptime - lastSysUptime) * 100;
+                    lastUTime = uTimeSec;
+                    lastSTime = sTimeSec;
+                    lastSysUptime = sysUptime;
+                    procStatFile.close();
                 }
                 
                 process *proc = new process();
-                *proc = {procName, state, threads, pid, writeKB, readKB, lastWriteKB, lastReadKB};
+                *proc = {procName, state, threads, pid, writeKB, readKB, lastWriteKB, lastReadKB, cpuUsage, lastUTime, lastSTime, lastSysUptime};
                 procsNameMap.insert({procName, proc});
                 procsPidMap.insert({pid, proc});
             }

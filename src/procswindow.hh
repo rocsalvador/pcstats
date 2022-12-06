@@ -22,6 +22,12 @@ private:
     int currentWindow = 1;
 
     int scrollPos = 0, maxScroll = 0;
+    int searchedProcPos = -1;
+    string searchedProcName;
+
+    int columns;
+    vector<string> columnsName;
+    vector<int> columnsWeight;
     
     //Private functions
     

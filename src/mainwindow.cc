@@ -65,6 +65,10 @@ void MainWindow::resize() {
     wprintw(currentWindowWin, " PROCS WIN (F2) ", refreshRate);
     if (currentWindow == 2) wattroff(currentWindowWin, A_STANDOUT);
     waddch(currentWindowWin, ACS_VLINE);
+    if (currentWindow == 2) {
+        wprintw(currentWindowWin, " SEARCH (F3) ", refreshRate);
+        waddch(currentWindowWin, ACS_VLINE);
+    }
     wattroff(currentWindowWin, A_BOLD);
 }
 
