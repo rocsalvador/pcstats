@@ -23,6 +23,7 @@ private:
         double lastUTime;
         double lastSTime;
         double lastSysUptime;
+        double memUsage;
     };
 
     double lastSysUptime = 0;
@@ -48,6 +49,8 @@ public:
     double getReadKB(int i) const;
 
     double getCpuUsage(int i) const;
+
+    double getMemUsage(int i) const;
 
     int getProcIndex(string procName) const;
 

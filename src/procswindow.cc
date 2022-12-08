@@ -1,10 +1,11 @@
 #include "procswindow.hh"
+#include <csignal>
 
 ProcsWindow::ProcsWindow() {
     processInfo = new ProcessInfo();
-    columns = 10;
-    columnsName = {"NAME", "PID", "STATUS", "THREADS", "CPU (%)", "WRITE", "READ"};
-    columnsWeight = {0, 2, 3, 4, 5, 7, 9};
+    columns = 12;
+    columnsName = {"NAME", "PID", "STATUS", "THREADS", "CPU (%)", "MEM (MB)", "WRITE (KB/s)", "READ (KB/s)"};
+    columnsWeight = {0, 2, 3, 4, 5, 7, 9, 11};
 }
 
 void ProcsWindow::clearBox(WINDOW* win, int y) {
@@ -47,15 +48,22 @@ void ProcsWindow::print() {
     int statusPos = columnSize * 3 + 1;
     int threadsPos = columnSize * 4 + 1;
     int cpuUsagePos = columnSize * 5 + 1;
-    int writePos = columnSize * 7 + 1;
-    int readPos = columnSize * 9 + 1;
+    int memUsagePos = columnSize * 7 + 1;
+    int writePos = columnSize * 9 + 1;
+    int readPos = columnSize * 11 + 1;
 
     maxScroll = processInfo->getNProcs();
-    for (int i = 2, procIdx = i + scrollPos;
+    for (int i = 2, procIdx = i + scrollPos - 2;
          procIdx < processInfo->getNProcs() and i < maxProcsWinHeight - 1;
          ++i, ++procIdx)
     {
-        if (searchedProcPos == procIdx) wattron(procsWin, A_STANDOUT);
+        if (searchedProcPos == procIdx) {
+            wattron(procsWin, A_STANDOUT);
+            for (int j = 1; j < maxProcsWinWidth - 1; ++j)  {
+                wmove(procsWin, i, j);
+                waddch(procsWin, ' ');
+            }
+        }
         else if (i % 2 == 0) {
             wattron(procsWin, COLOR_PAIR(1));
             for (int j = 1; j < maxProcsWinWidth - 1; ++j)  {
@@ -73,14 +81,14 @@ void ProcsWindow::print() {
         wprintw(procsWin, "%d", processInfo->getProcThreads(procIdx));
         wmove(procsWin, i, cpuUsagePos);
         wprintw(procsWin, "%.2f", processInfo->getCpuUsage(procIdx));
+        wmove(procsWin, i, memUsagePos);
+        wprintw(procsWin, "%.2f", processInfo->getMemUsage(procIdx));
         wmove(procsWin, i, writePos);
         wprintw(procsWin, "%.2f", processInfo->getWriteKB(procIdx));
         wmove(procsWin, i, readPos);
         wprintw(procsWin, "%.2f", processInfo->getReadKB(procIdx));
         if (searchedProcPos == procIdx) wattroff(procsWin, A_STANDOUT);
-        else if (i % 2 == 0) {
-            wattroff(procsWin, COLOR_PAIR(1));
-        }
+        else if (i % 2 == 0) wattroff(procsWin, COLOR_PAIR(1));
     }
 }
 
@@ -110,6 +118,11 @@ void ProcsWindow::input(int key) {
                     refresh();
                 }
             }
+        }
+    }
+    else if (key == KEY_F(4)) {
+        if (searchedProcPos != -1) {
+            kill(processInfo->getProcPid(searchedProcPos), SIGKILL);
         }
     }
     timeout(0);

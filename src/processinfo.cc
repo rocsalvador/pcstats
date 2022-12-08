@@ -76,6 +76,13 @@ double ProcessInfo::getCpuUsage(int i) const
     return it->second->cpuUsage;
 }
 
+double ProcessInfo::getMemUsage(int i) const 
+{
+    auto it = procsNameMap.begin();
+    advance(it, i);
+    return it->second->memUsage;
+}
+
 ProcessInfo::process ProcessInfo::getProcByName(string name) const
 {
     return *procsNameMap.find(name)->second;
@@ -107,15 +114,18 @@ void ProcessInfo::update()
             if(procStatusFile.is_open()) {
                 string procName, state, aux;
                 int threads, pid;
+                double memUsage;
                 procStatusFile >> aux >> procName;
                 while(procStatusFile >> aux and aux != "State:");
                 procStatusFile >> state;
                 while(procStatusFile >> aux and aux != "Pid:");
                 procStatusFile >> pid;
+                while(procStatusFile >> aux and aux != "RssAnon:");
+                procStatusFile >> memUsage;
+                memUsage /= 1024;
                 while(procStatusFile >> aux and aux != "Threads:");
-                procStatusFile >> aux;
-                threads = stoi(aux);
-                
+                procStatusFile >> threads;
+
                 ifstream procIOFile;
                 procIOFile.open(fileDir + "/io");
                 
@@ -176,7 +186,7 @@ void ProcessInfo::update()
                 }
                 
                 process *proc = new process();
-                *proc = {procName, state, threads, pid, writeKB, readKB, lastWriteKB, lastReadKB, cpuUsage, lastUTime, lastSTime, lastSysUptime};
+                *proc = {procName, state, threads, pid, writeKB, readKB, lastWriteKB, lastReadKB, cpuUsage, lastUTime, lastSTime, lastSysUptime, memUsage};
                 procsNameMap.insert({procName, proc});
                 procsPidMap.insert({pid, proc});
             }

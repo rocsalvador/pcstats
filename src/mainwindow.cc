@@ -57,6 +57,8 @@ void MainWindow::printStatusBar() {
     if (currentWindow == 2) {
         wprintw(statusBar, " SEARCH (F3) ", refreshRate);
         waddch(statusBar, ACS_VLINE);
+        wprintw(statusBar, " KILL (F4) ", refreshRate);
+        waddch(statusBar, ACS_VLINE);
     }
 }
 
