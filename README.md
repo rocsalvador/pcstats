@@ -13,11 +13,18 @@ If you get a dependency error, run:
 sudo apt install -f
 ```
 ### Build from source
-Clone the repository and open a terminal in the src folder and run:
-- ```make```: generates the executable file
-- ```make install```: generates the executable and installs it (```make uninstall``` to uninstall it)
 
-Make sure that you have ```g++``` , ```make``` and ```libncurses-dev``` installed in your machine
+#### Requirements
+-  ```g++```
+- ```make``` 
+- ```libncurses-dev```
+
+```bash
+git clone https://github.com/rocsalvador/pcstats.git
+cd pcstats
+make -j
+```
+
 ## Usage
 ```bash
 pcstats [OPTIONS]
@@ -25,4 +32,6 @@ OPTIONS:
 -n refres_rate     set refresh rate (default: 1s)
 ```
 ## Example
-![Image](https://user-images.githubusercontent.com/58912154/120934009-e4f12800-c6fc-11eb-9f2b-a3ec40b9cc0a.png)
+![Image](https://user-images.githubusercontent.com/58912154/206488777-3a661d71-5355-4b5e-8665-6735bd569f69.png)
+![Image](https://user-images.githubusercontent.com/58912154/206488882-3aa3b74e-7852-4559-9a50-19de94ce4446.png)
+
