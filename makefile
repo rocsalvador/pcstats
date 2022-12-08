@@ -4,7 +4,7 @@ SRC_FILES := $(wildcard $(SRC_DIR)/*.cc)
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.cc,$(OBJ_DIR)/%.o,$(SRC_FILES))
 LDFLAGS := -lncurses
 # CPPFLAGS := ...
-CXXFLAGS := -O2 -Wall
+CXXFLAGS := -O2 -Wall -std=c++17
 TARGET := pcstats
 CC := g++
 

@@ -18,14 +18,15 @@ private:
     StatsWindow* statsWindow;
     ProcsWindow* procsWindow;
 
-    WINDOW* refreshRateWin;
-    WINDOW* currentWindowWin;
+    WINDOW* statusBar;
     
     int maxStdsrcHeight, maxStdsrcWidth;
 
     int coreWinsWidth;
     
     double refreshRate;
+
+    string refreshRateStr;
 
     int currentWindow = 1;
 
@@ -36,12 +37,12 @@ private:
     void clearBox(WINDOW* win, int y);
     
     void print();
-        
-    void setRefreshRate(string refreshRate);
-
+    
     void refresh();
 
     void resize();
+
+    void printStatusBar();
     
 public:
     MainWindow(const double& refreshRate);

@@ -36,7 +36,16 @@ int ProcessInfo::getProcIndex(string procName) const
 {
     auto it = procsNameMap.find(procName);
     if(it != procsNameMap.end()) return distance(procsNameMap.begin(), it);
-    else return -1;
+    else {
+        auto it = procsNameMap.begin();
+        for (int i = 0; i < procsNameMap.size(); ++i, ++it) {
+            for (int j = 0; j < it->first.size() and j < procName.size(); ++j) {
+                if (it->first[j] != procName[j]) break;
+                if (j == procName.size() - 1) return i;
+            }
+        }
+        return -1;
+    }
 }
 
 int ProcessInfo::getProcPid(int i) const

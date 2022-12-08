@@ -5,12 +5,17 @@ MainWindow::MainWindow(const double& refreshRate) {
     statsWindow = new StatsWindow();
     
     this->refreshRate = refreshRate;
+    refreshRateStr = to_string(refreshRate);
+    refreshRateStr = refreshRateStr.substr(0, refreshRateStr.find(".") + 3);
 
     // Init curses screen
     initscr();
     noecho();
+    start_color();
     curs_set(0);
     keypad(stdscr, true);
+    int LIGHT_GREY = 237;
+    init_pair(1, COLOR_WHITE, LIGHT_GREY);
     resize();
 }
 
@@ -25,12 +30,6 @@ void MainWindow::clearBox(WINDOW* win, int y) {
     }
 }
 
-void MainWindow::setRefreshRate(string refresh_rate) {
-    wclear(refreshRateWin);
-    wprintw(refreshRateWin, "Refresh rate: %s s", refresh_rate.c_str());
-    wrefresh(refreshRateWin);
-}
-
 void MainWindow::print() {
     switch (currentWindow) {
         case 1:
@@ -39,6 +38,25 @@ void MainWindow::print() {
         case 2:
             procsWindow->print();
             break;
+    }
+}
+
+void MainWindow::printStatusBar() {
+    getmaxyx(stdscr, maxStdsrcHeight, maxStdsrcWidth);
+    statusBar = newwin(1, maxStdsrcWidth, maxStdsrcHeight - 1, 0);
+    wprintw(statusBar, "Refresh rate: %s s ", refreshRateStr.c_str());
+    waddch(statusBar, ACS_VLINE);
+    if (currentWindow == 1) wattron(statusBar, A_STANDOUT);
+    wprintw(statusBar, " STATS WIN (F1) ", refreshRate);
+    if (currentWindow == 1) wattroff(statusBar, A_STANDOUT);
+    waddch(statusBar, ACS_VLINE);
+    if (currentWindow == 2) wattron(statusBar, A_STANDOUT);
+    wprintw(statusBar, " PROCS WIN (F2) ", refreshRate);
+    if (currentWindow == 2) wattroff(statusBar, A_STANDOUT);
+    waddch(statusBar, ACS_VLINE);
+    if (currentWindow == 2) {
+        wprintw(statusBar, " SEARCH (F3) ", refreshRate);
+        waddch(statusBar, ACS_VLINE);
     }
 }
 
@@ -51,25 +69,7 @@ void MainWindow::resize() {
             procsWindow->resize();
             break;
     }
-    getmaxyx(stdscr, maxStdsrcHeight, maxStdsrcWidth);
-    refreshRateWin = newwin(1, maxStdsrcWidth / 2, maxStdsrcHeight - 1, 0);
-    wprintw(refreshRateWin, "Refresh rate: %.2f s", refreshRate);
-    currentWindowWin = newwin(1, maxStdsrcWidth / 2, maxStdsrcHeight - 1, maxStdsrcWidth / 2);
-    wattron(currentWindowWin, A_BOLD);
-    waddch(currentWindowWin, ACS_VLINE);
-    if (currentWindow == 1) wattron(currentWindowWin, A_STANDOUT);
-    wprintw(currentWindowWin, " STATS WIN (F1) ", refreshRate);
-    if (currentWindow == 1) wattroff(currentWindowWin, A_STANDOUT);
-    waddch(currentWindowWin, ACS_VLINE);
-    if (currentWindow == 2) wattron(currentWindowWin, A_STANDOUT);
-    wprintw(currentWindowWin, " PROCS WIN (F2) ", refreshRate);
-    if (currentWindow == 2) wattroff(currentWindowWin, A_STANDOUT);
-    waddch(currentWindowWin, ACS_VLINE);
-    if (currentWindow == 2) {
-        wprintw(currentWindowWin, " SEARCH (F3) ", refreshRate);
-        waddch(currentWindowWin, ACS_VLINE);
-    }
-    wattroff(currentWindowWin, A_BOLD);
+    printStatusBar();
 }
 
 void MainWindow::refresh() {
@@ -81,8 +81,7 @@ void MainWindow::refresh() {
             procsWindow->refresh();
             break;
     }
-    wrefresh(refreshRateWin);
-    wrefresh(currentWindowWin);
+    wrefresh(statusBar);
 }
 
 void MainWindow::show() {
@@ -104,7 +103,9 @@ void MainWindow::show() {
             int decimal_size = 0;
             string num;
             num.push_back(key);
-            setRefreshRate(num);
+            refreshRateStr = num;
+            printStatusBar();
+            wrefresh(statusBar);
             bool point = false;
             timeout(3000);
             while(decimal_size < 4 and (key = getch())) {
@@ -112,13 +113,17 @@ void MainWindow::show() {
                     if(point) break;
                     else {
                         num.push_back(key);
-                        setRefreshRate(num);
+                        refreshRateStr = num;
+                        printStatusBar();
+                        wrefresh(statusBar);
                         point = true;
                     }
                 }
                 else if(key >= '0' and key <= '9') {
                     num.push_back(key);
-                    setRefreshRate(num);
+                    refreshRateStr = num;
+                    printStatusBar();
+                    wrefresh(statusBar);
                 }
                 else if(key == '\n') {
                     if(stod(num) >= 0.01) refreshRate = stod(num);
@@ -128,16 +133,15 @@ void MainWindow::show() {
                 
                 if(point) ++decimal_size;
             }
-            wclear(refreshRateWin);
-            wprintw(refreshRateWin, "Refresh rate: %.2f s", refreshRate);
-            wrefresh(refreshRateWin);
+            refreshRateStr = num;
+            printStatusBar();        
             timeout(refreshRate * 1000);
         }
         else if (key == KEY_F(2) and currentWindow != 2) {
             currentWindow = 2;
             resize();
             timeout(0);
-        }
+        } 
         else if (key == KEY_F(1) and currentWindow != 1) {
             currentWindow = 1;
             resize();

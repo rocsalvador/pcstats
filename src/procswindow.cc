@@ -3,7 +3,7 @@
 ProcsWindow::ProcsWindow() {
     processInfo = new ProcessInfo();
     columns = 10;
-    columnsName = {"NAME", "PID", "STATUS", "THREADS", "CPU", "WRITE", "READ"};
+    columnsName = {"NAME", "PID", "STATUS", "THREADS", "CPU (%)", "WRITE", "READ"};
     columnsWeight = {0, 2, 3, 4, 5, 7, 9};
 }
 
@@ -51,26 +51,36 @@ void ProcsWindow::print() {
     int readPos = columnSize * 9 + 1;
 
     maxScroll = processInfo->getNProcs();
-    for (int i = 0, procIdx = i + scrollPos;
-         procIdx < processInfo->getNProcs() and i < maxProcsWinHeight - 3;
+    for (int i = 2, procIdx = i + scrollPos;
+         procIdx < processInfo->getNProcs() and i < maxProcsWinHeight - 1;
          ++i, ++procIdx)
     {
         if (searchedProcPos == procIdx) wattron(procsWin, A_STANDOUT);
-        wmove(procsWin, i + 2, 1);
+        else if (i % 2 == 0) {
+            wattron(procsWin, COLOR_PAIR(1));
+            for (int j = 1; j < maxProcsWinWidth - 1; ++j)  {
+                wmove(procsWin, i, j);
+                waddch(procsWin, ' ');
+            }
+        }
+        wmove(procsWin, i, 1);
         wprintw(procsWin, "%s", processInfo->getProcName(procIdx).substr(0, pidPos - 2).c_str());
-        wmove(procsWin, i + 2, pidPos);
+        wmove(procsWin, i, pidPos);
         wprintw(procsWin, "%d", processInfo->getProcPid(procIdx));
-        wmove(procsWin, i + 2, statusPos);
+        wmove(procsWin, i, statusPos);
         wprintw(procsWin, "%s", processInfo->getProcState(procIdx).c_str());
-        wmove(procsWin, i + 2, threadsPos);
+        wmove(procsWin, i, threadsPos);
         wprintw(procsWin, "%d", processInfo->getProcThreads(procIdx));
-        wmove(procsWin, i + 2, cpuUsagePos);
-        wprintw(procsWin, "%.2f %", processInfo->getCpuUsage(procIdx));
-        wmove(procsWin, i + 2, writePos);
+        wmove(procsWin, i, cpuUsagePos);
+        wprintw(procsWin, "%.2f", processInfo->getCpuUsage(procIdx));
+        wmove(procsWin, i, writePos);
         wprintw(procsWin, "%.2f", processInfo->getWriteKB(procIdx));
-        wmove(procsWin, i + 2, readPos);
+        wmove(procsWin, i, readPos);
         wprintw(procsWin, "%.2f", processInfo->getReadKB(procIdx));
         if (searchedProcPos == procIdx) wattroff(procsWin, A_STANDOUT);
+        else if (i % 2 == 0) {
+            wattroff(procsWin, COLOR_PAIR(1));
+        }
     }
 }
 
@@ -83,14 +93,25 @@ void ProcsWindow::input(int key) {
         searchedProcName = "";
         while ((searchKey = getch())) {
             if (searchKey == '\n') break;
-            else searchedProcName.push_back(char(searchKey));
+            else {
+                if (searchKey == KEY_BACKSPACE) {
+                    if (searchedProcName.size() > 0) searchedProcName.pop_back();
+                }
+                else searchedProcName.push_back(char(searchKey));
+                int matchProcIdx = processInfo->getProcIndex(searchedProcName);
+                if (matchProcIdx != -1) {
+                    searchedProcPos = matchProcIdx;
+                    scrollPos = matchProcIdx;
+                    print();
+                    refresh();
+                } else if (searchedProcPos != -1) {
+                    searchedProcPos = -1;
+                    print();
+                    refresh();
+                }
+            }
         }
-
-        searchedProcPos = processInfo->getProcIndex(searchedProcName);
-        if (searchedProcPos != -1) scrollPos = searchedProcPos;
     }
-    refresh();
-    print();
     timeout(0);
 }
 
