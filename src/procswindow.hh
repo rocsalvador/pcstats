@@ -25,9 +25,7 @@ private:
     int searchedProcPos = -1;
     string searchedProcName;
 
-    int columns;
-    vector<string> columnsName;
-    vector<int> columnsWeight;
+    vector<string> columns;
     
     //Private functions
     

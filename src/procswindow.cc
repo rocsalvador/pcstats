@@ -3,9 +3,7 @@
 
 ProcsWindow::ProcsWindow() {
     processInfo = new ProcessInfo();
-    columns = 12;
-    columnsName = {"NAME", "PID", "STATUS", "THREADS", "CPU (%)", "MEM (MB)", "WRITE (KB/s)", "READ (KB/s)"};
-    columnsWeight = {0, 2, 3, 4, 5, 7, 9, 11};
+    columns = {"NAME", "PID", "STATUS", "THREADS", "CPU (%)", "MEM (MB)", "WRITE (KB/s)", "READ (KB/s)"};
 }
 
 void ProcsWindow::clearBox(WINDOW* win, int y) {
@@ -27,14 +25,12 @@ void ProcsWindow::resize() {
     getmaxyx(stdscr, maxStdsrcHeight, maxStdsrcWidth);
     procsWin = newwin(maxStdsrcHeight - 1, maxStdsrcWidth, 0, 0);
     wclear(procsWin);
-    int columnSize = maxStdsrcWidth / columns;
-    vector<int> columnsPos = vector<int> (columnsName.size());
-    for (int i = 0; i < columnsPos.size(); ++i) columnsPos[i] = columnsWeight[i] * columnSize + 1;
+    int columnSize = maxStdsrcWidth / columns.size();
     box(procsWin, 0, 0);
     wattron(procsWin, A_BOLD);
-    for (int i = 0; i < columnsName.size(); ++i) {
-        wmove(procsWin, 1, columnsPos[i]);
-        wprintw(procsWin, columnsName[i].c_str());
+    for (int i = 0; i < columns.size(); ++i) {
+        wmove(procsWin, 1, columnSize * i + 1);
+        wprintw(procsWin, "%s", columns[i].c_str());
     }
     wattroff(procsWin, A_BOLD);
 }
@@ -43,14 +39,14 @@ void ProcsWindow::print() {
     clearBox(procsWin, 2);
     int maxProcsWinHeight, maxProcsWinWidth;
     getmaxyx(procsWin, maxProcsWinHeight, maxProcsWinWidth);
-    int columnSize = maxProcsWinWidth / columns;
-    int pidPos = columnSize * 2 + 1;
-    int statusPos = columnSize * 3 + 1;
-    int threadsPos = columnSize * 4 + 1;
-    int cpuUsagePos = columnSize * 5 + 1;
-    int memUsagePos = columnSize * 7 + 1;
-    int writePos = columnSize * 9 + 1;
-    int readPos = columnSize * 11 + 1;
+    int columnSize = maxProcsWinWidth / columns.size();
+    int pidPos = columnSize + 1;
+    int statusPos = columnSize * 2 + 1;
+    int threadsPos = columnSize * 3 + 1;
+    int cpuUsagePos = columnSize * 4 + 1;
+    int memUsagePos = columnSize * 5 + 1;
+    int writePos = columnSize * 6 + 1;
+    int readPos = columnSize * 7 + 1;
 
     maxScroll = processInfo->getNProcs();
     for (int i = 2, procIdx = i + scrollPos - 2;
