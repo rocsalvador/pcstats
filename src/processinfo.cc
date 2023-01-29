@@ -160,6 +160,7 @@ void ProcessInfo::update()
                     lastUTime = it->second->lastUTime;
                     lastSTime = it->second->lastSTime;
                     lastSysUptime = it->second->lastSysUptime;
+                    delete it->second;
                 }
 
                 ifstream procStatFile(fileDir + "/stat");
