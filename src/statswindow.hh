@@ -26,7 +26,7 @@ private:
 
     int coreWinsWidth;
     
-    list<int> cpuUsageHistory, ramUsageHistory;
+    list<double> cpuUsageHistory, ramUsageHistory;
     
     CpuInfo *cpuInfo;
     RamInfo *ramInfo;

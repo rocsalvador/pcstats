@@ -35,22 +35,20 @@ void StatsWindow::refresh() {
     wrefresh(refreshRateWin);
 }
 
-
 void StatsWindow::printCpuGraphic() {
+    double cpu_usage = cpuInfo->getCoreUsage(-1);
     unsigned int maxWinHeight, maxWinWidth;
     getmaxyx(cpuUsageWin, maxWinHeight, maxWinWidth);
-    double cpu_usage = cpuInfo->getCoreUsage(-1);
-    int height = cpu_usage/100*(maxWinHeight-2);
     
-    cpuUsageHistory.push_back(height);
-    if(maxWinWidth-1 == cpuUsageHistory.size()) {
-        cpuUsageHistory.pop_front();
+    if(cpuUsageHistory.size() == maxWinWidth - 2) {
         clearBox(cpuUsageWin, 1);
     }
+
     int j = 1;
-    for(int it : cpuUsageHistory) {
-        for(int i = 0; i < it; ++i) {
-            wmove(cpuUsageWin, maxWinHeight-i-2, j);
+    for (double cpuUsage : cpuUsageHistory) {
+        uint cpuUsageHeight = cpuUsage / 100 * (maxWinHeight-2);
+        for(uint i = 0; i < cpuUsageHeight; ++i) {
+            wmove(cpuUsageWin, maxWinHeight - i - 2, j);
             waddch(cpuUsageWin, ACS_CKBOARD);
         }
         ++j;
@@ -65,17 +63,15 @@ void StatsWindow::printCpuGraphic() {
 void StatsWindow::printRamGraphic() {
     unsigned int maxWinHeight, maxWinWidth;
     getmaxyx(ramUsageWin, maxWinHeight, maxWinWidth);
-    double ram_usage = ramInfo->getRamUsage();
-    int height = ram_usage/100*(maxWinHeight-2);
     
-    ramUsageHistory.push_back(height);
-    if(maxWinWidth-1 == ramUsageHistory.size()) {
-        ramUsageHistory.pop_front();
+    if (ramUsageHistory.size() == maxWinWidth - 2) {
         clearBox(ramUsageWin, 1);
     }
+
     int j = 1;
-    for(int it : ramUsageHistory) {
-        for(int i = 0; i < it; ++i) {
+    for (double ramUsage : ramUsageHistory) {
+        uint ramUsageHeight = ramUsage / 100 * (maxWinHeight-2);
+        for(uint i = 0; i < ramUsageHeight; ++i) {
             wmove(ramUsageWin, maxWinHeight-i-2, j);
             waddch(ramUsageWin, ACS_CKBOARD);
         }
@@ -86,10 +82,10 @@ void StatsWindow::printRamGraphic() {
 }
 
 void StatsWindow::resize() {
-    cpuUsageHistory.clear();
-    ramUsageHistory.clear();
-        
     getmaxyx(stdscr, maxStdsrcHeight, maxStdsrcWidth);
+
+    clearBox(cpuUsageWin, 1);
+    clearBox(ramUsageWin, 1);
 
     maximumWinSizes();
     int cpuUsageWinHeight = (maxStdsrcHeight - 1)/2;
@@ -174,6 +170,25 @@ void StatsWindow::print() {
 void StatsWindow::update() {
     cpuInfo->updateStats();
     ramInfo->updateRamUsage();
+
+    unsigned int maxWinHeight, maxWinWidth;
+    getmaxyx(cpuUsageWin, maxWinHeight, maxWinWidth);
+
+    while (cpuUsageHistory.size() >= maxWinWidth - 2) {
+        cpuUsageHistory.pop_front();
+    }
+
+    double cpuUsage = cpuInfo->getCoreUsage(-1);
+    cpuUsageHistory.push_back(cpuUsage);
+
+    getmaxyx(ramUsageWin, maxWinHeight, maxWinWidth);
+
+    while (ramUsageHistory.size() >= maxWinWidth - 2) {
+        ramUsageHistory.pop_front();
+    }
+
+    double ramUsage = ramInfo->getRamUsage();
+    ramUsageHistory.push_back(ramUsage);
 }
 
 
