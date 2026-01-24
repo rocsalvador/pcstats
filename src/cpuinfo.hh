@@ -6,7 +6,8 @@
 #include <vector>
 using namespace std;
 
-class CpuInfo {
+class CpuInfo
+{
 private:
     string name;
     int cores;
@@ -14,7 +15,7 @@ private:
     double cpuUsage;
     vector<double> coresUsage;
     vector<unsigned long> coresLast;
-    unsigned long long  lastUser, lastNice, lastSystem, lastIdle;
+    unsigned long long lastUser, lastNice, lastSystem, lastIdle;
     int usageCounter;
     double maxUsage, avgUsage;
 
@@ -23,12 +24,10 @@ private:
     int freqCounter;
     double maxFreq, avgFreq;
 
-
     string cpuTempFolder;
-    vector<pair<string,int>> coreTemps;
+    vector<pair<string, int>> coreTemps;
     int tempCounter;
     double maxTemp, avgTemp;
-
 
 public:
     CpuInfo();
@@ -45,7 +44,7 @@ public:
 
     double getCoreUsage(int core) const;
 
-    pair<string,int> getCoreTemp(int core) const;
+    pair<string, int> getCoreTemp(int core) const;
 
     double getCoreFreq(int core) const;
 

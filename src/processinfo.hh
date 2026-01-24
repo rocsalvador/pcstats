@@ -8,9 +8,11 @@
 #include <vector>
 using namespace std;
 
-class ProcessInfo {
+class ProcessInfo
+{
 private:
-    struct process {
+    struct process
+    {
         string name;
         string state;
         int threads;
@@ -28,8 +30,8 @@ private:
 
     double lastSysUptime = 0;
 
-    map<string, process*> procsNameMap;
-    map<int, process*> procsPidMap;
+    vector<process *> procsList;
+    map<string, process *> procsNameMap;
 
 public:
     ProcessInfo();
@@ -43,9 +45,9 @@ public:
     int getProcThreads(int i) const;
 
     int getProcPid(int i) const;
-    
+
     double getWriteKB(int i) const;
-    
+
     double getReadKB(int i) const;
 
     double getCpuUsage(int i) const;
@@ -53,10 +55,6 @@ public:
     double getMemUsage(int i) const;
 
     int getProcIndex(string procName) const;
-
-    process getProcByPid(int pid) const;
-
-    process getProcByName(string name) const;
 
     void update();
 };

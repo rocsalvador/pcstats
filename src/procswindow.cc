@@ -1,45 +1,53 @@
 #include "procswindow.hh"
 #include <csignal>
 
-ProcsWindow::ProcsWindow() {
+ProcsWindow::ProcsWindow()
+{
     processInfo = new ProcessInfo();
     columns = 12;
     columnsName = {"NAME", "PID", "STATUS", "THREADS", "CPU (%)", "MEM (MB)", "WRITE (KB/s)", "READ (KB/s)"};
     columnsWeight = {0, 2, 3, 4, 5, 7, 9, 11};
 }
 
-void ProcsWindow::clearBox(WINDOW* win, int y) {
+void ProcsWindow::clearBox(WINDOW *win, int y)
+{
     int maxWinHeight, maxWinWidth;
     getmaxyx(win, maxWinHeight, maxWinWidth);
-    for(int i = y; i < maxWinHeight-1; ++i) {
+    for (int i = y; i < maxWinHeight - 1; ++i)
+    {
         wmove(win, i, 1);
         wclrtoeol(win);
-        wmove(win, i, maxWinWidth-1);
+        wmove(win, i, maxWinWidth - 1);
         waddch(win, ACS_VLINE);
     }
 }
 
-void ProcsWindow::refresh() {
+void ProcsWindow::refresh()
+{
     wrefresh(procsWin);
 }
 
-void ProcsWindow::resize() {
+void ProcsWindow::resize()
+{
     getmaxyx(stdscr, maxStdsrcHeight, maxStdsrcWidth);
     procsWin = newwin(maxStdsrcHeight - 1, maxStdsrcWidth, 0, 0);
     wclear(procsWin);
     int columnSize = maxStdsrcWidth / columns;
-    vector<int> columnsPos = vector<int> (columnsName.size());
-    for (int i = 0; i < columnsPos.size(); ++i) columnsPos[i] = columnsWeight[i] * columnSize + 1;
+    vector<int> columnsPos = vector<int>(columnsName.size());
+    for (uint i = 0; i < columnsPos.size(); ++i)
+        columnsPos[i] = columnsWeight[i] * columnSize + 1;
     box(procsWin, 0, 0);
     wattron(procsWin, A_BOLD);
-    for (int i = 0; i < columnsName.size(); ++i) {
+    for (uint i = 0; i < columnsName.size(); ++i)
+    {
         wmove(procsWin, 1, columnsPos[i]);
         wprintw(procsWin, columnsName[i].c_str());
     }
     wattroff(procsWin, A_BOLD);
 }
 
-void ProcsWindow::print() {
+void ProcsWindow::print()
+{
     clearBox(procsWin, 2);
     int maxProcsWinHeight, maxProcsWinWidth;
     getmaxyx(procsWin, maxProcsWinHeight, maxProcsWinWidth);
@@ -57,16 +65,20 @@ void ProcsWindow::print() {
          procIdx < processInfo->getNProcs() and i < maxProcsWinHeight - 1;
          ++i, ++procIdx)
     {
-        if (searchedProcPos == procIdx) {
+        if (searchedProcPos == procIdx)
+        {
             wattron(procsWin, A_STANDOUT);
-            for (int j = 1; j < maxProcsWinWidth - 1; ++j)  {
+            for (int j = 1; j < maxProcsWinWidth - 1; ++j)
+            {
                 wmove(procsWin, i, j);
                 waddch(procsWin, ' ');
             }
         }
-        else if (i % 2 == 0) {
+        else if (i % 2 == 0)
+        {
             wattron(procsWin, COLOR_PAIR(1));
-            for (int j = 1; j < maxProcsWinWidth - 1; ++j)  {
+            for (int j = 1; j < maxProcsWinWidth - 1; ++j)
+            {
                 wmove(procsWin, i, j);
                 waddch(procsWin, ' ');
             }
@@ -87,40 +99,59 @@ void ProcsWindow::print() {
         wprintw(procsWin, "%.2f", processInfo->getWriteKB(procIdx));
         wmove(procsWin, i, readPos);
         wprintw(procsWin, "%.2f", processInfo->getReadKB(procIdx));
-        if (searchedProcPos == procIdx) wattroff(procsWin, A_STANDOUT);
-        else if (i % 2 == 0) wattroff(procsWin, COLOR_PAIR(1));
+        if (searchedProcPos == procIdx)
+            wattroff(procsWin, A_STANDOUT);
+        else if (i % 2 == 0)
+            wattroff(procsWin, COLOR_PAIR(1));
     }
 }
 
-void ProcsWindow::input(int key) {
-    if (key == KEY_DOWN and scrollPos < maxScroll - 1) ++scrollPos;
-    else if (key == KEY_UP and scrollPos > 0) --scrollPos;
-    else if (key == KEY_NPAGE) {
+void ProcsWindow::input(int key)
+{
+    if (key == KEY_DOWN and scrollPos < maxScroll - 1)
+        ++scrollPos;
+    else if (key == KEY_UP and scrollPos > 0)
+        --scrollPos;
+    else if (key == KEY_NPAGE)
+    {
         scrollPos += (maxStdsrcHeight - 3);
-        if (scrollPos > maxScroll - 1) scrollPos = maxScroll - 1;
+        if (scrollPos > maxScroll - 1)
+            scrollPos = maxScroll - 1;
     }
-    else if (key == KEY_PPAGE) {
+    else if (key == KEY_PPAGE)
+    {
         scrollPos -= (maxStdsrcHeight - 3);
-        if (scrollPos < 0) scrollPos = 0;
+        if (scrollPos < 0)
+            scrollPos = 0;
     }
-    else if (key == KEY_F(3)) {
+    else if (key == KEY_F(3))
+    {
         timeout(3000);
         int searchKey;
         searchedProcName = "";
-        while ((searchKey = getch())) {
-            if (searchKey == '\n') break;
-            else {
-                if (searchKey == KEY_BACKSPACE) {
-                    if (searchedProcName.size() > 0) searchedProcName.pop_back();
+        while ((searchKey = getch()))
+        {
+            if (searchKey == '\n')
+                break;
+            else
+            {
+                if (searchKey == KEY_BACKSPACE)
+                {
+                    if (searchedProcName.size() > 0)
+                        searchedProcName.pop_back();
                 }
-                else searchedProcName.push_back(char(searchKey));
+                else
+                    searchedProcName.push_back(char(searchKey));
                 int matchProcIdx = processInfo->getProcIndex(searchedProcName);
-                if (matchProcIdx != -1) {
+                if (matchProcIdx != -1)
+                {
                     searchedProcPos = matchProcIdx;
                     scrollPos = matchProcIdx;
                     print();
                     refresh();
-                } else if (searchedProcPos != -1) {
+                }
+                else if (searchedProcPos != -1)
+                {
                     searchedProcPos = -1;
                     print();
                     refresh();
@@ -128,22 +159,27 @@ void ProcsWindow::input(int key) {
             }
         }
     }
-    else if (key == KEY_F(4)) {
-        if (searchedProcPos != -1) {
+    else if (key == KEY_F(4))
+    {
+        if (searchedProcPos != -1)
+        {
             kill(processInfo->getProcPid(searchedProcPos), SIGKILL);
         }
     }
     timeout(0);
 }
 
-void ProcsWindow::update() {
+void ProcsWindow::update()
+{
     processInfo->update();
     maxScroll = processInfo->getNProcs();
-    if (searchedProcPos != -1) {
+    if (searchedProcPos != -1)
+    {
         searchedProcPos = processInfo->getProcIndex(searchedProcName);
     }
 }
 
-ProcsWindow::~ProcsWindow() {
+ProcsWindow::~ProcsWindow()
+{
     delete processInfo;
 }

@@ -7,14 +7,15 @@
 #include <ncurses.h>
 using namespace std;
 
-class ProcsWindow {
+class ProcsWindow
+{
 private:
-    WINDOW* procsWin;
-    
+    WINDOW *procsWin;
+
     int maxStdsrcHeight, maxStdsrcWidth;
 
     int coreWinsWidth;
-    
+
     double refreshRate;
 
     ProcessInfo *processInfo;
@@ -28,15 +29,15 @@ private:
     int columns;
     vector<string> columnsName;
     vector<int> columnsWeight;
-    
-    //Private functions
-    
-    void clearBox(WINDOW* win, int y);
-    
+
+    // Private functions
+
+    void clearBox(WINDOW *win, int y);
+
 public:
     ProcsWindow();
 
-    void print();    
+    void print();
 
     void refresh();
 
@@ -45,7 +46,7 @@ public:
     void update();
 
     void input(int key);
-    
+
     ~ProcsWindow();
 };
 

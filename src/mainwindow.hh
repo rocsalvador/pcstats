@@ -12,18 +12,19 @@
 #include <ncurses.h>
 using namespace std;
 
-class MainWindow {
+class MainWindow
+{
 private:
-    //Private attributes
-    StatsWindow* statsWindow;
-    ProcsWindow* procsWindow;
+    // Private attributes
+    StatsWindow *statsWindow;
+    ProcsWindow *procsWindow;
 
-    WINDOW* statusBar;
-    
+    WINDOW *statusBar;
+
     int maxStdsrcHeight, maxStdsrcWidth;
 
     int coreWinsWidth;
-    
+
     double refreshRate;
 
     string refreshRateStr;
@@ -31,24 +32,24 @@ private:
     int currentWindow = 1;
 
     int scrollPos = 0, maxScroll = 0;
-    
-    //Private functions
-    
-    void clearBox(WINDOW* win, int y);
-    
+
+    // Private functions
+
+    void clearBox(WINDOW *win, int y);
+
     void print();
-    
+
     void refresh();
 
     void resize();
 
     void printStatusBar();
-    
+
 public:
-    MainWindow(const double& refreshRate);
-    
+    MainWindow(const double &refreshRate);
+
     void show();
-    
+
     ~MainWindow();
 };
 

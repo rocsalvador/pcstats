@@ -6,7 +6,8 @@
 #include <vector>
 using namespace std;
 
-class RamInfo {
+class RamInfo
+{
 private:
     unsigned long long totalRam;
     int usageCounter;
