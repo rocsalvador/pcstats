@@ -95,6 +95,14 @@ void ProcsWindow::print() {
 void ProcsWindow::input(int key) {
     if (key == KEY_DOWN and scrollPos < maxScroll - 1) ++scrollPos;
     else if (key == KEY_UP and scrollPos > 0) --scrollPos;
+    else if (key == KEY_NPAGE) {
+        scrollPos += (maxStdsrcHeight - 3);
+        if (scrollPos > maxScroll - 1) scrollPos = maxScroll - 1;
+    }
+    else if (key == KEY_PPAGE) {
+        scrollPos -= (maxStdsrcHeight - 3);
+        if (scrollPos < 0) scrollPos = 0;
+    }
     else if (key == KEY_F(3)) {
         timeout(3000);
         int searchKey;
