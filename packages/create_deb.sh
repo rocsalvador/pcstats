@@ -1,11 +1,34 @@
 #!/bin/bash
 
-mkdir -p pcstats_deb/DEBIAN
-mkdir -p pcstats_deb/usr/bin
-mkdir -p pcstats_deb/usr/share/applications
+usage() {
+    echo "Usage: $0 -v pcstats_version [-i]"
+    exit 1
+}
 
-echo -n  "Version: "
-read version
+if [ "$#" -lt 2 ]; then
+    usage
+fi
+
+install=false
+while getopts "v:i" opt; do
+    case $opt in
+        v)
+            version="$OPTARG"
+            ;;
+        i)
+            install=true
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+
+root_dir=$(readlink -f $(dirname "$0")/..)
+
+mkdir -p $root_dir/packages/pcstats_deb/DEBIAN
+mkdir -p $root_dir/packages/pcstats_deb/usr/bin
+mkdir -p $root_dir/packages/pcstats_deb/usr/share/applications
 
 echo "Package: pcstats
 Version: $version
@@ -13,28 +36,26 @@ Section: custom
 Architecture: amd64
 Depends: ncurses-base
 Maintainer: rocsalvador
-Description: Monitor CPU and RAM stats
-Homepage: https://github.com/rocsalvador/pcstats" > pcstats_deb/DEBIAN/control
+Description: Resource usage monitor
+Homepage: https://github.com/rocsalvador/pcstats" > $root_dir/packages/pcstats_deb/DEBIAN/control
 
 echo "[Desktop Entry]
 Name=pcstats
 Version=$version
 Type=Application
-Comment=CPU and RAM monitor
+Comment=Resource usage monitor
 Terminal=true
 Exec=/usr/bin/pcstats
 Icon=utilities-system-monitor
-Categories=System;"  > pcstats_deb/usr/share/applications/pcstats.desktop
+Categories=System;"  > $root_dir/packages/pcstats_deb/usr/share/applications/pcstats.desktop
 
-make -j8 -C ../src
-cp ../src/pcstats pcstats_deb/usr/bin/
+make -j8 -C $root_dir
+cp $root_dir/pcstats $root_dir/packages/pcstats_deb/usr/bin/
 
-dpkg --build pcstats_deb/
+dpkg --build $root_dir/packages/pcstats_deb/
 package_name=pcstats_"$version"_amd64.deb
-mv pcstats_deb.deb $package_name
+mv $root_dir/packages/pcstats_deb.deb $package_name
 
-echo -n "Do you want to install $package_name [Y/n] "
-read -r c
-if [ "$c" = "Y" ] || [ "$c" = "y" ] || [ "$c" = "" ]; then
+if $install; then
     sudo dpkg -i $package_name
 fi
