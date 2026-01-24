@@ -27,24 +27,17 @@ int ProcessInfo::getProcThreads(int i) const
 
 int ProcessInfo::getProcIndex(string procName) const
 {
-    auto it = procsNameMap.find(procName);
-    if (it != procsNameMap.end())
-        return distance(procsNameMap.begin(), it);
-    else
+    for (uint i = 0; i < procsList.size(); ++i)
     {
-        auto it = procsNameMap.begin();
-        for (uint i = 0; i < procsNameMap.size(); ++i, ++it)
+        for (uint j = 0; j < procsList[i]->name.size() and j < procName.size(); ++j)
         {
-            for (uint j = 0; j < it->first.size() and j < procName.size(); ++j)
-            {
-                if (it->first[j] != procName[j])
-                    break;
-                if (j == procName.size() - 1)
-                    return i;
-            }
+            if (procsList[i]->name[j] != procName[j])
+                break;
+            if (j == procName.size() - 1)
+                return i;
         }
-        return -1;
     }
+    return -1;
 }
 
 int ProcessInfo::getProcPid(int i) const
@@ -70,6 +63,25 @@ double ProcessInfo::getCpuUsage(int i) const
 double ProcessInfo::getMemUsage(int i) const
 {
     return procsList[i]->memUsage;
+}
+
+void ProcessInfo::sortProcesses(sortBy criteria)
+{
+    switch (criteria)
+    {
+    case sortBy::CPU:
+        sort(procsList.begin(), procsList.end(), [](process *a, process *b)
+             { return a->cpuUsage > b->cpuUsage; });
+        break;
+    case sortBy::MEM:
+        sort(procsList.begin(), procsList.end(), [](process *a, process *b)
+             { return a->memUsage > b->memUsage; });
+        break;
+    case sortBy::NAME:
+        sort(procsList.begin(), procsList.end(), [](process *a, process *b)
+             { return a->name < b->name; });
+        break;
+    }
 }
 
 void ProcessInfo::update()

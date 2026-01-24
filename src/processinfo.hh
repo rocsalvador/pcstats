@@ -6,6 +6,7 @@
 #include <map>
 #include <iostream>
 #include <vector>
+#include <algorithm>
 using namespace std;
 
 class ProcessInfo
@@ -31,12 +32,22 @@ private:
     double lastSysUptime = 0;
 
     vector<process *> procsList;
+
     map<string, process *> procsNameMap;
 
 public:
+    enum class sortBy : uint
+    {
+        NAME = 0,
+        CPU = 1,
+        MEM = 2
+    };
+
     ProcessInfo();
 
     int getNProcs() const;
+
+    void sortProcesses(sortBy criteria);
 
     string getProcName(int i) const;
 

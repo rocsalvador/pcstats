@@ -50,7 +50,9 @@ void MainWindow::printStatusBar()
 {
     getmaxyx(stdscr, maxStdsrcHeight, maxStdsrcWidth);
     statusBar = newwin(1, maxStdsrcWidth, maxStdsrcHeight - 1, 0);
-    wprintw(statusBar, "Refresh rate: %s s ", refreshRateStr.c_str());
+    wattron(statusBar, A_BOLD);
+    waddch(statusBar, ACS_VLINE);
+    wprintw(statusBar, " Refresh rate: %s s ", refreshRateStr.c_str());
     waddch(statusBar, ACS_VLINE);
     if (currentWindow == 1)
         wattron(statusBar, A_STANDOUT);
@@ -64,13 +66,8 @@ void MainWindow::printStatusBar()
     if (currentWindow == 2)
         wattroff(statusBar, A_STANDOUT);
     waddch(statusBar, ACS_VLINE);
-    if (currentWindow == 2)
-    {
-        wprintw(statusBar, " SEARCH (F3) ");
-        waddch(statusBar, ACS_VLINE);
-        wprintw(statusBar, " KILL (F4) ");
-        waddch(statusBar, ACS_VLINE);
-    }
+    wattroff(statusBar, COLOR_PAIR(1));
+    wattroff(statusBar, A_BOLD);
 }
 
 void MainWindow::resize()

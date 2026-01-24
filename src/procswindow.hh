@@ -11,6 +11,7 @@ class ProcsWindow
 {
 private:
     WINDOW *procsWin;
+    WINDOW *statusBar;
 
     int maxStdsrcHeight, maxStdsrcWidth;
 
@@ -30,6 +31,8 @@ private:
     vector<string> columnsName;
     vector<int> columnsWeight;
 
+    ProcessInfo::sortBy currentSortBy = ProcessInfo::sortBy::NAME;
+
     // Private functions
 
     void clearBox(WINDOW *win, int y);
@@ -38,6 +41,10 @@ public:
     ProcsWindow();
 
     void print();
+
+    void printProcsWin();
+
+    void printStatusBar(int key);
 
     void refresh();
 

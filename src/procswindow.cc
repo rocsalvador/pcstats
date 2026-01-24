@@ -25,13 +25,16 @@ void ProcsWindow::clearBox(WINDOW *win, int y)
 void ProcsWindow::refresh()
 {
     wrefresh(procsWin);
+    wrefresh(statusBar);
 }
 
 void ProcsWindow::resize()
 {
     getmaxyx(stdscr, maxStdsrcHeight, maxStdsrcWidth);
-    procsWin = newwin(maxStdsrcHeight - 1, maxStdsrcWidth, 0, 0);
+    procsWin = newwin(maxStdsrcHeight - 2, maxStdsrcWidth, 0, 0);
+    statusBar = newwin(1, maxStdsrcWidth, maxStdsrcHeight - 2, 0);
     wclear(procsWin);
+    wclear(statusBar);
     int columnSize = maxStdsrcWidth / columns;
     vector<int> columnsPos = vector<int>(columnsName.size());
     for (uint i = 0; i < columnsPos.size(); ++i)
@@ -46,7 +49,7 @@ void ProcsWindow::resize()
     wattroff(procsWin, A_BOLD);
 }
 
-void ProcsWindow::print()
+void ProcsWindow::printProcsWin()
 {
     clearBox(procsWin, 2);
     int maxProcsWinHeight, maxProcsWinWidth;
@@ -106,6 +109,73 @@ void ProcsWindow::print()
     }
 }
 
+void ProcsWindow::printStatusBar(int key)
+{
+    wclear(statusBar);
+    wattron(statusBar, COLOR_PAIR(1));
+    wattron(statusBar, A_BOLD);
+
+    uint maxStatusBarWidth = getmaxx(statusBar);
+    for (uint j = 0; j < maxStatusBarWidth; ++j)
+    {
+        wmove(statusBar, 0, j);
+        waddch(statusBar, ' ');
+    }
+
+    wmove(statusBar, 0, 0);
+    waddch(statusBar, ACS_VLINE);
+
+    if (key == KEY_F(3))
+    {
+        wattron(statusBar, A_STANDOUT);
+        wprintw(statusBar, searchedProcName.c_str());
+        for (uint i = searchedProcName.size() + 1; i < 14; ++i)
+            waddch(statusBar, ' ');
+        wattroff(statusBar, A_STANDOUT);
+    }
+    else
+        wprintw(statusBar, " SEARCH (F3) ");
+
+    waddch(statusBar, ACS_VLINE);
+
+    wprintw(statusBar, " KILL (F4) ");
+
+    waddch(statusBar, ACS_VLINE);
+
+    wprintw(statusBar, " SORT BY ");
+    if (currentSortBy == ProcessInfo::sortBy::NAME)
+        wattron(statusBar, A_STANDOUT);
+    wprintw(statusBar, "NAME");
+    if (currentSortBy == ProcessInfo::sortBy::NAME)
+        wattroff(statusBar, A_STANDOUT);
+    wprintw(statusBar, "/");
+    if (currentSortBy == ProcessInfo::sortBy::CPU)
+        wattron(statusBar, A_STANDOUT);
+    wprintw(statusBar, "CPU");
+    if (currentSortBy == ProcessInfo::sortBy::CPU)
+        wattroff(statusBar, A_STANDOUT);
+    wprintw(statusBar, "/");
+    if (currentSortBy == ProcessInfo::sortBy::MEM)
+        wattron(statusBar, A_STANDOUT);
+    wprintw(statusBar, "MEM");
+    if (currentSortBy == ProcessInfo::sortBy::MEM)
+        wattroff(statusBar, A_STANDOUT);
+
+    wprintw(statusBar, " (F5/F6/F7) ");
+
+    waddch(statusBar, ACS_VLINE);
+
+    wattroff(statusBar, COLOR_PAIR(1));
+    wattroff(statusBar, A_BOLD);
+}
+
+void ProcsWindow::print()
+{
+    printProcsWin();
+
+    printStatusBar(-1);
+}
+
 void ProcsWindow::input(int key)
 {
     if (key == KEY_DOWN and scrollPos < maxScroll - 1)
@@ -129,26 +199,27 @@ void ProcsWindow::input(int key)
         timeout(3000);
         int searchKey;
         searchedProcName = "";
+        printStatusBar(KEY_F(3));
+        wrefresh(statusBar);
         while ((searchKey = getch()))
         {
-            if (searchKey == '\n')
+            if (searchKey == '\n' or searchKey == -1)
                 break;
             else
             {
-                if (searchKey == KEY_BACKSPACE)
-                {
-                    if (searchedProcName.size() > 0)
-                        searchedProcName.pop_back();
-                }
+                if (searchKey == KEY_BACKSPACE and searchedProcName.size() > 0)
+                    searchedProcName.pop_back();
                 else
                     searchedProcName.push_back(char(searchKey));
+                printStatusBar(KEY_F(3));
+                wrefresh(statusBar);
                 int matchProcIdx = processInfo->getProcIndex(searchedProcName);
                 if (matchProcIdx != -1)
                 {
                     searchedProcPos = matchProcIdx;
                     scrollPos = matchProcIdx;
-                    print();
-                    refresh();
+                    printProcsWin();
+                    wrefresh(procsWin);
                 }
                 else if (searchedProcPos != -1)
                 {
@@ -166,6 +237,13 @@ void ProcsWindow::input(int key)
             kill(processInfo->getProcPid(searchedProcPos), SIGKILL);
         }
     }
+    else if (key >= KEY_F(5) and key <= KEY_F(7))
+    {
+        currentSortBy = static_cast<ProcessInfo::sortBy>(key - KEY_F(5));
+        processInfo->sortProcesses(currentSortBy);
+        searchedProcPos = -1;
+        scrollPos = 0;
+    }
     timeout(0);
 }
 
@@ -177,6 +255,7 @@ void ProcsWindow::update()
     {
         searchedProcPos = processInfo->getProcIndex(searchedProcName);
     }
+    processInfo->sortProcesses(currentSortBy);
 }
 
 ProcsWindow::~ProcsWindow()
