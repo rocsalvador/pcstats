@@ -178,21 +178,27 @@ void ProcsWindow::print()
 
 void ProcsWindow::input(int key)
 {
-    if (key == KEY_DOWN and scrollPos < maxScroll - 1)
+    if (key == KEY_DOWN and scrollPos < maxScroll - 1) {
         ++scrollPos;
-    else if (key == KEY_UP and scrollPos > 0)
+        timeout(0);
+    }
+    else if (key == KEY_UP and scrollPos > 0) {
         --scrollPos;
+        timeout(0);
+    }
     else if (key == KEY_NPAGE)
     {
         scrollPos += (maxStdsrcHeight - 3);
         if (scrollPos > maxScroll - 1)
             scrollPos = maxScroll - 1;
+        timeout(0);
     }
     else if (key == KEY_PPAGE)
     {
         scrollPos -= (maxStdsrcHeight - 3);
         if (scrollPos < 0)
             scrollPos = 0;
+        timeout(0);
     }
     else if (key == KEY_F(3))
     {
@@ -229,22 +235,29 @@ void ProcsWindow::input(int key)
                 }
             }
         }
+        timeout(0);
     }
     else if (key == KEY_F(4))
     {
         if (searchedProcPos != -1)
         {
             kill(processInfo->getProcPid(searchedProcPos), SIGKILL);
+            timeout(0);
         }
     }
     else if (key >= KEY_F(5) and key <= KEY_F(7))
     {
-        currentSortBy = static_cast<ProcessInfo::sortBy>(key - KEY_F(5));
-        processInfo->sortProcesses(currentSortBy);
-        searchedProcPos = -1;
-        scrollPos = 0;
-    }
-    timeout(0);
+        ProcessInfo::sortBy newSortBy = static_cast<ProcessInfo::sortBy>(key - KEY_F(5));
+        if (newSortBy != currentSortBy)
+        {
+            currentSortBy = newSortBy;
+            processInfo->sortProcesses(currentSortBy);
+            if (searchedProcPos != -1)
+                searchedProcPos = processInfo->getProcIndex(searchedProcName);
+            scrollPos = 0;
+            timeout(0);
+        }
+    }    
 }
 
 void ProcsWindow::update()
