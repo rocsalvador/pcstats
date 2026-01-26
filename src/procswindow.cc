@@ -251,11 +251,9 @@ void ProcsWindow::update()
 {
     processInfo->update();
     maxScroll = processInfo->getNProcs();
-    if (searchedProcPos != -1)
-    {
-        searchedProcPos = processInfo->getProcIndex(searchedProcName);
-    }
     processInfo->sortProcesses(currentSortBy);
+    if (searchedProcPos != -1)
+        searchedProcPos = processInfo->getProcIndex(searchedProcName);
 }
 
 ProcsWindow::~ProcsWindow()
