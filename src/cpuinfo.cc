@@ -244,7 +244,7 @@ pair<string, int> CpuInfo::getCoreTemp(int core) const
 
 void CpuInfo::resetSavedStats()
 {
-    maxFreq = 0, avgUsage = 0, avgUsage = 0, maxUsage = 0;
+    maxFreq = 0, avgFreq = 0, avgUsage = 0, maxUsage = 0;
     usageCounter = 0, freqCounter = 0;
     maxTemp = 0, avgTemp = 0, tempCounter = 0;
 }

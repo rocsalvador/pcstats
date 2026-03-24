@@ -1,8 +1,15 @@
 #include "processinfo.hh"
+#include <cmath>
 #include <unistd.h>
 
 ProcessInfo::ProcessInfo()
 {
+}
+
+ProcessInfo::~ProcessInfo()
+{
+    for (auto &pair : procsNameMap)
+        delete pair.second;
 }
 
 int ProcessInfo::getNProcs() const
@@ -185,7 +192,7 @@ void ProcessInfo::update()
                     double clkTck = sysconf(_SC_CLK_TCK);
                     double uTimeSec = uTime / clkTck;
                     double sTimeSec = sTime / clkTck;
-                    cpuUsage = abs(uTimeSec + sTimeSec - lastUTime - lastSTime) / (sysUptime - lastSysUptime) * 100;
+                    cpuUsage = std::abs(uTimeSec + sTimeSec - lastUTime - lastSTime) / (sysUptime - lastSysUptime) * 100;
                     lastUTime = uTimeSec;
                     lastSTime = sTimeSec;
                     lastSysUptime = sysUptime;
@@ -193,12 +200,15 @@ void ProcessInfo::update()
                 }
 
                 process *proc = new process();
-                *proc = {procName, state, threads, pid, writeKB, readKB, lastWriteKB, lastReadKB, cpuUsage, lastUTime, lastSTime, lastSysUptime, memUsage};
+                *proc = {procName, state, threads, pid, readKB, writeKB, lastReadKB, lastWriteKB, cpuUsage, lastUTime, lastSTime, lastSysUptime, memUsage};
                 procsNameMap[procName] = proc;
                 procStatusFile.close();
             }
         }
     }
+
+    for (auto &pair : auxNameMap)
+        delete pair.second;
 
     uint nProcs = procsNameMap.size();
     procsList = vector<process *>(nProcs);
