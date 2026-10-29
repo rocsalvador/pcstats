@@ -44,7 +44,7 @@ void ProcsWindow::resize()
     for (uint i = 0; i < columnsName.size(); ++i)
     {
         wmove(procsWin, 1, columnsPos[i]);
-        wprintw(procsWin, columnsName[i].c_str());
+        wprintw(procsWin, "%s", columnsName[i].c_str());
     }
     wattroff(procsWin, A_BOLD);
 }
@@ -128,7 +128,7 @@ void ProcsWindow::printStatusBar(int key)
     if (key == KEY_F(3))
     {
         wattron(statusBar, A_STANDOUT);
-        wprintw(statusBar, searchedProcName.c_str());
+        wprintw(statusBar, "%s", searchedProcName.c_str());
         for (uint i = searchedProcName.size() + 1; i < 14; ++i)
             waddch(statusBar, ' ');
         wattroff(statusBar, A_STANDOUT);

@@ -20,8 +20,8 @@ private:
         int pid;
         double readKB;
         double writeKB;
-        double lastWriteKB;
         double lastReadKB;
+        double lastWriteKB;
         double cpuUsage;
         double lastUTime;
         double lastSTime;
@@ -44,6 +44,8 @@ public:
     };
 
     ProcessInfo();
+
+    ~ProcessInfo();
 
     int getNProcs() const;
 
